@@ -39,7 +39,7 @@ def get_locale():
     # header the browser transmits.
     loc = request.accept_languages.best_match(['it', 'en'])
     if loc is None:
-      loc = 'it'
+      loc = 'en'
     return loc
 
 @app.route("/")

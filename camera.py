@@ -14,6 +14,7 @@ import config
 CAMERA_REFRESH_INTERVAL=0.1
 MAX_IMAGE_AGE = 0.0
 PHOTO_PATH = "./photos"
+DEFAULT_IMAGE = "./photos/broken.jpg"
 PHOTO_PREFIX = "DSC"
 VIDEO_PREFIX = "VID"
 PHOTO_THUMB_SUFFIX = "_thumb"
@@ -39,7 +40,14 @@ class Camera(Thread):
   def __init__(self):
     logging.info("starting camera")
     cam_props = {"width":640, "height":480, "exposure_mode": config.Config.get().get("camera_exposure_mode")}
-    self._camera = camera.Camera(props=cam_props)
+    #try initialising the camera
+    try:
+      self._camera = camera.Camera(props=cam_props)
+    except:
+      self._camera = None
+      logging.error("Unexpected error:" + str(sys.exc_info()[0]))
+      pass
+        
     self._streamer = streamer.JpegStreamer("0.0.0.0:"+str(self.stream_port), st=0.1)
     #self._cam_off_img.save(self._streamer)
     self.recording = False
@@ -58,6 +66,8 @@ class Camera(Thread):
     super(Camera, self).__init__()
 
   def run(self):
+    if self._camera is None:
+      return
     try:
       self._camera.grab_start()
       while self._run:
@@ -84,13 +94,18 @@ class Camera(Thread):
       raise
 
   def get_image(self, maxage = MAX_IMAGE_AGE):
-    return image.Image(self._camera.get_image_bgr())
+    if self._camera is None:
+      return Image(cv2.imread(DEFAULT_IMAGE))
+    else:
+      return image.Image(self._camera.get_image_bgr())
 
   def save_image(self, image_jpeg):
     self._streamer.set_image(image_jpeg)
     self._image_time=time.time()
 
   def set_text(self, text):
+    if self._camera is None:
+      return
     self._camera.set_overlay_text(str(text))
 
   def get_next_photo_index(self):
@@ -105,6 +120,8 @@ class Camera(Thread):
     return last_photo_index + 1
 
   def photo_take(self):
+    if self._camera is None:
+      return
     photo_index = self.get_next_photo_index()
     filename = PHOTO_PREFIX + str(photo_index) + self._camera.PHOTO_FILE_EXT;
     filename_thumb = PHOTO_PREFIX + str(photo_index) + PHOTO_THUMB_SUFFIX + self._camera.PHOTO_FILE_EXT;
@@ -124,7 +141,9 @@ class Camera(Thread):
     if self.is_recording():
       return
     self.recording = True
-
+    if self._camera is None:
+      return
+    
     if video_name is None:
       video_index = self.get_next_photo_index()
       filename = VIDEO_PREFIX + str(video_index) + self._camera.VIDEO_FILE_EXT;
@@ -146,6 +165,8 @@ class Camera(Thread):
     self.video_start_time = time.time()
 
   def video_stop(self):
+    if self._camera is None:
+      return
     if self.recording:
       self._camera.video_stop()
       self.recording = False
@@ -162,7 +183,8 @@ class Camera(Thread):
   def delete_photo(self, filename):
     logging.info("delete photo: " + filename)
     os.remove(PHOTO_PATH + "/" + filename)
-    os.remove(PHOTO_PATH + "/" + filename[:filename.rfind(".")] + PHOTO_THUMB_SUFFIX + self._camera.PHOTO_FILE_EXT)
+    if self._camera is not None:
+      os.remove(PHOTO_PATH + "/" + filename[:filename.rfind(".")] + PHOTO_THUMB_SUFFIX + self._camera.PHOTO_FILE_EXT)
     self._photos.remove(filename)
 
   def exit(self):
@@ -170,6 +192,8 @@ class Camera(Thread):
     self.join()
 
   def calibrate(self):
+    if self._camera is None:
+      return
     img = self._camera.getImage()
     self._background = img.hueHistogram()[-1]
         
