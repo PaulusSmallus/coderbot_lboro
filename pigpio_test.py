@@ -4,22 +4,24 @@ import time
 import pigpio
 
 
-PIN_SERVO = 4
+PIN = 4   # RIGHT=4 LEFT=25 ARM=9
 
-PWM_FREQ = 50
+PWM_FREQ = 500
 PWM_RANGE = 100
 
 pi = pigpio.pi('localhost')
 
-pi.set_PWM_frequency(PIN_SERVO,PWM_FREQ)
-pi.set_PWM_range(PIN_SERVO,PWM_RANGE)
+pi.set_PWM_frequency(PIN,PWM_FREQ)
+pi.set_PWM_range(PIN,PWM_RANGE)
 
-pi.set_PWM_dutycycle(PIN_SERVO,0)
-time.sleep(1)
-pi.set_PWM_dutycycle(PIN_SERVO,25)
-time.sleep(1)
-pi.set_PWM_dutycycle(PIN_SERVO,60)
-time.sleep(1)
-pi.set_PWM_dutycycle(PIN_SERVO,100)
+# duty cycle values for range 100, frequency 400
+# 0-
+
+for x in range (50,100):
+    pi.set_PWM_dutycycle(PIN,x)
+    time.sleep(0.2)
+    print x
+
+pi.set_PWM_dutycycle(PIN,0)
 
 

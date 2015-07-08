@@ -11,7 +11,7 @@ PIN_PUSHBUTTON = 18
 PIN_SERVO_3 = 9
 PIN_SERVO_4 = 10
 
-PWM_FREQUENCY = 50 #Hz
+PWM_FREQUENCY = 500 #Hz
 PWM_RANGE = 100 #0-100
 
 def coderbot_callback(gpio, level, tick):
@@ -112,15 +112,15 @@ class CoderBot:
 
   def _servo_motor_control(self, pin, speed):
     self._is_moving = True
-    speed = ((speed + 100) * 50 / 200) + 52
-
+    #speed = ((speed + 100) * 50 / 200) + 52
+    speed = 50 + speed/2
+    print "duty cycle: ", speed
     self.pi.set_PWM_range(pin, PWM_RANGE)
     self.pi.set_PWM_frequency(pin, PWM_FREQUENCY)
     self.pi.set_PWM_dutycycle(pin, speed)
 
   def _servo_control(self, pin, angle):
     duty = ((angle + 90) * 100 / 180) + 25
-
     self.pi.set_PWM_range(pin, PWM_RANGE)
     self.pi.set_PWM_frequency(pin, PWM_FREQUENCY)
     self.pi.set_PWM_dutycycle(pin, duty)
@@ -129,6 +129,7 @@ class CoderBot:
     for pin in self._pin_out:
       self.pi.write(pin, 0)
     self._is_moving = False
+
 
   def is_moving(self):
     return self._is_moving
