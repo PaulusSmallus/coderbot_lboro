@@ -4,14 +4,14 @@ import pigpio
 
 PIN_MOTOR_ENABLE = 22
 PIN_LEFT_FORWARD = 25
-PIN_LEFT_BACKWARD = 24
+PIN_LEFT_BACKWARD = 24 # NOT USED FOR SERVOS
 PIN_RIGHT_FORWARD = 4
-PIN_RIGHT_BACKWARD = 17
+PIN_RIGHT_BACKWARD = 17 # NOT USED FOR SERVOS
 PIN_PUSHBUTTON = 18
 PIN_SERVO_3 = 9
 PIN_SERVO_4 = 10
 
-PWM_FREQUENCY = 100 #Hz
+PWM_FREQUENCY = 50 #Hz
 PWM_RANGE = 100 #0-100
 
 def coderbot_callback(gpio, level, tick):
@@ -114,15 +114,15 @@ class CoderBot:
     self._is_moving = True
     speed = ((speed + 100) * 50 / 200) + 52
 
-    self.pi.set_PWM_range(pin, 1000)
-    self.pi.set_PWM_frequency(pin, 50)
+    self.pi.set_PWM_range(pin, PWM_RANGE)
+    self.pi.set_PWM_frequency(pin, PWM_FREQUENCY)
     self.pi.set_PWM_dutycycle(pin, speed)
 
   def _servo_control(self, pin, angle):
     duty = ((angle + 90) * 100 / 180) + 25
 
-    self.pi.set_PWM_range(pin, 1000)
-    self.pi.set_PWM_frequency(pin, 50)
+    self.pi.set_PWM_range(pin, PWM_RANGE)
+    self.pi.set_PWM_frequency(pin, PWM_FREQUENCY)
     self.pi.set_PWM_dutycycle(pin, duty)
 
   def stop(self):

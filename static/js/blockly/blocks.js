@@ -760,3 +760,63 @@ Blockly.Python['coderbot_adv_findLogo'] = function(block) {
   var code = 'get_cam().find_logo()';
   return [code, Blockly.Python.ORDER_ATOMIC];
 };
+
+Blockly.Blocks['coderbot_armRaise'] = {
+  /**
+     * Block for armRaise function.
+     * @this Blockly.Block
+     */
+  init: function() {
+    this.setHelpUrl(Blockly.Msg.CODERBOT_ARM_RAISE_HELPURL);
+    this.setColour(40);
+    var di = this.appendDummyInput()    
+    if (CODERBOT_PROG_LEVEL.indexOf("basic")>=0) {
+      di.appendField(new Blockly.FieldImage('/images/blocks/arm_raise.png', 32, 32, '*'));
+    } else {
+      di.appendField(Blockly.Msg.CODERBOT_ARM_RAISE)
+    }
+    this.setPreviousStatement(true);
+    this.setNextStatement(true);
+    this.setTooltip('Coderbot_armRaiseTooltip');
+  }
+};
+
+Blockly.JavaScript['coderbot_armRaise'] = function(block) {
+  // Generate JavaScript for raising the arm
+  return 'get_bot()..servo3(' + CODERBOT_ARM_ANGLE_RAISED + ');\n';
+};
+
+Blockly.Python['coderbot_armRaise'] = function(block) {
+  // Generate Python code for raising the arm
+  return 'get_bot()..servo3(' + CODERBOT_ARM_ANGLE_RAISED + ')\n';
+};
+
+Blockly.Blocks['coderbot_armLower'] = {
+  /** 
+     * Block for armLower function.
+     * @this Blockly.Block
+     */
+  init: function() {
+    this.setHelpUrl(Blockly.Msg.CODERBOT_ARM_RAISE_HELPURL);
+    this.setColour(40);
+    var di = this.appendDummyInput()
+    if (CODERBOT_PROG_LEVEL.indexOf("basic")>=0) {
+      di.appendField(new Blockly.FieldImage('/image/blocks/arm_lower.png', 32, 32, '*'));
+    } else {
+      di.appendField(Blockly.Msg.CODERBOT_ARM_LOWER)
+    }
+    this.setPreviousStatement(true);
+    this.setNextStatement(true);
+    this.setTooltip('Coderbot_armLowerTooltip');
+  } 
+};
+
+Blockly.JavaScript['coderbot_armLower'] = function(block) {
+  // Generate JavaScript code for lowering the arm
+  return 'get_bot().servo3(' + CODERBOT_ARM_ANGLE_LOWERED + ');\n';
+};
+
+Blockly.Python['coderbot_armLower'] = function(block) {
+  // Generate Python code for lowering the arm
+  return 'get_bot().servo3(' + CODERBOT_ARM_ANGLE_LOWERED + ')\n';
+};

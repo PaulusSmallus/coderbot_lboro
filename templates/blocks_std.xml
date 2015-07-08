@@ -58,6 +58,10 @@
         </value>
       </block>
     </category>
+    <category name ="{% trans %}Arm{% endtrans %}">
+      <block type="coderbot_armRaise"></block>
+      <block type="coderbot_armLower"></block>
+    </category>
     <category name="{% trans %}Sensor{% endtrans %}">
       <block type="coderbot_adv_pathAhead"></block>
       <block type="coderbot_adv_findLine"></block>
