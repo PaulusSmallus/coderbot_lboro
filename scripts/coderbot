@@ -11,15 +11,14 @@
 ### END INIT INFO
 
 # Location of daemon python script
-DIR=/home/pi/coderbot
+DIR=/home/pi/coderbot_lboro
 DAEMON=$DIR/init.py
 DAEMON_NAME=coderbot
 
 # Put your command-line options here
 DAEMON_OPTS=""
 
-# Must start as root to use GPIO
-DAEMON_USER=root
+DAEMON_USER=pi
 
 # The process ID of the script when it runs is stored here
 PIDFILE=/var/run/$DAEMON_NAME.pid
