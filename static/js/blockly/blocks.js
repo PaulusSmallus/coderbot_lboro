@@ -783,12 +783,12 @@ Blockly.Blocks['coderbot_armRaise'] = {
 
 Blockly.JavaScript['coderbot_armRaise'] = function(block) {
   // Generate JavaScript for raising the arm
-  return 'get_bot()..servo3(' + CODERBOT_ARM_ANGLE_RAISED + ');\n';
+  return 'get_bot().servo3(' + CODERBOT_ARM_ANGLE_RAISED + ');\n';
 };
 
 Blockly.Python['coderbot_armRaise'] = function(block) {
   // Generate Python code for raising the arm
-  return 'get_bot()..servo3(' + CODERBOT_ARM_ANGLE_RAISED + ')\n';
+  return 'get_bot().servo3(' + CODERBOT_ARM_ANGLE_RAISED + ')\n';
 };
 
 Blockly.Blocks['coderbot_armLower'] = {

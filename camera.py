@@ -332,6 +332,6 @@ class Camera(Thread):
     return [dist, angle]
     
   def sleep(self, elapse):
-    logging.debug("sleep: " + elapse)
+    logging.debug("sleep: " + str(elapse))
     time.sleep(elapse)
 

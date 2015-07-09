@@ -8,11 +8,11 @@ PIN_LEFT_BACKWARD = 24 # NOT USED FOR SERVOS
 PIN_RIGHT_FORWARD = 4
 PIN_RIGHT_BACKWARD = 17 # NOT USED FOR SERVOS
 PIN_PUSHBUTTON = 18
-PIN_SERVO_3 = 9
+PIN_SERVO_3 = 9 # ARM PIN
 PIN_SERVO_4 = 10
 
-PWM_FREQUENCY = 500 #Hz
-PWM_RANGE = 100 #0-100
+PWM_FREQUENCY = 50 #Hz
+PWM_RANGE = 2000 #100-200 duty cycle operating range for servos
 
 def coderbot_callback(gpio, level, tick):
   return CoderBot.get_instance().callback(gpio, level, tick)
@@ -112,15 +112,20 @@ class CoderBot:
 
   def _servo_motor_control(self, pin, speed):
     self._is_moving = True
-    #speed = ((speed + 100) * 50 / 200) + 52
-    speed = 50 + speed/2
+
+    # transform speed value from -100 to +100 range
+    # to servo duty cycle range: 100 to 200
+    speed = 150 + speed/2
     print "duty cycle: ", speed
     self.pi.set_PWM_range(pin, PWM_RANGE)
     self.pi.set_PWM_frequency(pin, PWM_FREQUENCY)
     self.pi.set_PWM_dutycycle(pin, speed)
 
   def _servo_control(self, pin, angle):
-    duty = ((angle + 90) * 100 / 180) + 25
+
+    # assuming angle range is 0 to 120
+    # transform from angle range to servo duty cycle range (100 to 200)
+    duty = angle + 90 # (90-210)
     self.pi.set_PWM_range(pin, PWM_RANGE)
     self.pi.set_PWM_frequency(pin, PWM_FREQUENCY)
     self.pi.set_PWM_dutycycle(pin, duty)
