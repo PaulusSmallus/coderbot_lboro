@@ -226,6 +226,10 @@
         </value>
       </block>
     </category>
+    <category name ="{% trans %}Arm{% endtrans %}">
+      <block type="coderbot_armRaise"></block>
+      <block type="coderbot_armLower"></block>
+    </category>
     <category name="{% trans %}Camera{% endtrans %}">
       <block type="coderbot_camera_photoTake"></block>
       <block type="coderbot_camera_videoRec"></block>

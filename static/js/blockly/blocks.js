@@ -768,7 +768,7 @@ Blockly.Blocks['coderbot_armRaise'] = {
      */
   init: function() {
     this.setHelpUrl(Blockly.Msg.CODERBOT_ARM_RAISE_HELPURL);
-    this.setColour(40);
+    this.setColour(290);
     var di = this.appendDummyInput()    
     if (CODERBOT_PROG_LEVEL.indexOf("basic")>=0) {
       di.appendField(new Blockly.FieldImage('/images/blocks/arm_raise.png', 32, 32, '*'));
@@ -798,7 +798,7 @@ Blockly.Blocks['coderbot_armLower'] = {
      */
   init: function() {
     this.setHelpUrl(Blockly.Msg.CODERBOT_ARM_RAISE_HELPURL);
-    this.setColour(40);
+    this.setColour(290);
     var di = this.appendDummyInput()
     if (CODERBOT_PROG_LEVEL.indexOf("basic")>=0) {
       di.appendField(new Blockly.FieldImage('/image/blocks/arm_lower.png', 32, 32, '*'));

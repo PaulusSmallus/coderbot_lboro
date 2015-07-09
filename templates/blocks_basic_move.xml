@@ -3,4 +3,6 @@
       <block type="coderbot_moveBackward"></block>
       <block type="coderbot_turnLeft"></block>
       <block type="coderbot_turnRight"></block>
+      <block type="coderbot_armRaise"></block>
+      <block type="coderbot_armLower"></block>
   </xml>
