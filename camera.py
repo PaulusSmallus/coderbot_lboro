@@ -39,7 +39,12 @@ class Camera(Thread):
 
   def __init__(self):
     logging.info("starting camera")
-    cam_props = {"width":640, "height":480, "exposure_mode": config.Config.get().get("camera_exposure_mode")}
+    cam_props = {
+      "width":640,
+      "height":480,
+      "exposure_mode": config.Config.get().get("camera_exposure_mode"),
+      "rotation": config.Config.get().get("camera_rotation")
+    }
     #try initialising the camera
     try:
       self._camera = camera.Camera(props=cam_props)
@@ -119,6 +124,15 @@ class Camera(Thread):
         pass
     return last_photo_index + 1
 
+  def rotate(self):
+    if self._camera is None:
+      return
+    rot = self._camera.camera.rotation
+    rot = rot + 90
+    if rot > 271:
+      rot = 0
+    self._camera.camera.rotation = rot
+
   def photo_take(self):
     if self._camera is None:
       return
@@ -196,7 +210,12 @@ class Camera(Thread):
       return
     img = self._camera.getImage()
     self._background = img.hueHistogram()[-1]
-        
+
+  def set_rotation(self, rotation):
+    if self._camera is None:
+      return
+    self._camera.rotation = rotation
+  
   def find_line(self):
     self._image_lock.acquire()
     img = self.get_image(0).binarize()

@@ -78,6 +78,9 @@ $(document).on( "pagecreate", '#page-control', function( event ) {
 	$('#b_camera').on("click", function (){
                 bot.takePhoto();
 	});
+	$('#b_camera_rot').on("click",function(){
+	              bot.rotateCamera();
+	});
 	$('#b_video_rec').on("click", function (){
                 bot.videoRec();
 	});

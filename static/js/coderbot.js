@@ -51,6 +51,10 @@ CoderBot.prototype.stop = function() {
         }
 }
 
+CoderBot.prototype.rotateCamera = function() {
+  this.command('rotate_camera',0);
+}
+
 CoderBot.prototype.takePhoto = function() {
 	this.command('take_photo', 0);
 }

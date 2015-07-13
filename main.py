@@ -83,6 +83,8 @@ def handle_bot():
     elif cmd == "stop":
         bot.stop()
         motion.stop()
+    elif cmd == "rotate_camera":
+        cam.rotate()
     elif cmd == "take_photo":
         cam.photo_take()
         bot.say(app.bot_config.get("sound_shutter"))
