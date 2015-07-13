@@ -99,6 +99,13 @@
        <option value="antishake"{%if config.camera_exposure_mode=='antishake'%} selected{%endif%}>Anti shake</option>
        <option value="verylong"{%if config.camera_exposure_mode=='verylong'%} selected{%endif%}>Very long</option>
      </select>
+     <label for="i_camera_rotation">{% trans %} Camera image rotation {% endtrans %}</label>
+     <select name="camera_rotation" id="i_camera_rotation" value="{{config.camera_rotation}}">
+       <option value="0"{%if config.camera_rotation=='0'%} selected{%endif%}>0</option>
+       <option value="90"{%if config.camera_rotation=='90'%} selected{%endif%}>90</option>
+       <option value="180"{%if config.camera_rotation=='180'%} selected{%endif%}>180</option>
+       <option value="270"{%if config.camera_rotation=='270'%} selected{%endif%}>270</option>
+     </select>
     </div>
     <div id="t_movement" class="ui-body-d ui-content">
      <label for="i_move_motor_mode">{% trans %}Motor control mode{% endtrans %}</label>
@@ -109,6 +116,10 @@
      <input type="text" id="i_move_power_angle_2" name="move_power_angle_2" value="{{config.move_power_angle_2}}">
      <label for="i_move_power_angle_3">{% trans %}Power (target angle -1){% endtrans %}</label>
      <input type="text" id="i_move_power_angle_3" name="move_power_angle_3" value="{{config.move_power_angle_3}}">
+     <label for="i_arm_angle_lowered">{% trans %}Arm lowered angle (0-180) {% endtrans %}</label>
+     <input type ="text" id="i_arm_angle_lowered" name="arm_angle_lowered" value="{{config.arm_angle_lowered}}">
+     <label for="i_arm_angle_raised">{% trans %} Arm raised angle (0-180) {% endtrans %}</label>
+     <input type ="text" id="i_arm_angle_raised" name="arm_angle_raised" value="{{config.arm_angle_raised}}">
     </div>
     <div id="t_start" class="ui-body-d ui-content">
      <label for="i_load_at_start">{% trans %}Load at start{% endtrans %}</label>
