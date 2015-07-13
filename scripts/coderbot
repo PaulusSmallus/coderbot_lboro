@@ -7,7 +7,7 @@
 # Default-Start:	2 3 4 5
 # Default-Stop: 	0 1 6
 # Short-Description:	Web-based Blockly Interface for Pi
-# Description:		Web-based Blockly Interface for programming the Pi, goto 10.0.0.10:8080
+# Description:		Web-based Blockly Interface for programming the Pi, goto 10.0.0.1:8080
 ### END INIT INFO
 
 # Location of daemon python script
