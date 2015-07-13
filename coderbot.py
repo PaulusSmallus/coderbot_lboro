@@ -116,7 +116,6 @@ class CoderBot:
     # transform speed value from -100 to +100 range
     # to servo duty cycle range: 100 to 200
     speed = 150 + speed/2
-    print "duty cycle: ", speed
     self.pi.set_PWM_range(pin, PWM_RANGE)
     self.pi.set_PWM_frequency(pin, PWM_FREQUENCY)
     self.pi.set_PWM_dutycycle(pin, speed)
@@ -143,7 +142,7 @@ class CoderBot:
     if what and "$" in what:
       os.system ('omxplayer sounds/' + what[1:])
     elif what and len(what):
-      os.system ('espeak -vit -p 90 -a 200 -s 150 -g 10 "' + what + '" 2>>/dev/null')
+      os.system ('espeak -ven -p 90 -a 200 -s 150 -g 10 "' + what + '" 2>>/dev/null')
 
   def set_callback(self, gpio, callback, elapse):
     self._cb_elapse[gpio] = elapse * 1000
