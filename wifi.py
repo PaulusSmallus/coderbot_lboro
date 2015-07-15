@@ -13,7 +13,7 @@ import json
 class WiFi():
 
   CONFIG_FILE = "/etc/coderbot_wifi.conf"
-  adapters = ["RT5370", "RTL8188CUS"] 
+  adapters = ["RT5370", "RTL8188CUS", "RT3572"] 
   hostapds = {"RT5370": "hostapd.RT5370", "RTL8188CUS": "hostapd.RTL8188"} 
   web_url = "http://coderbotsrv.appspot.com/register_ip"
   wifi_client_conf_file = "/etc/wpa_supplicant/wpa_supplicant.conf"
@@ -45,13 +45,13 @@ class WiFi():
     
   @classmethod
   def start_hostapd(cls):
-    adapter = cls.get_adapter_type()
-    hostapd_type = cls.hostapds.get(adapter)
+    #adapter = cls.get_adapter_type()
+    #hostapd_type = cls.hostapds.get(adapter)
     try:
       print "starting hostapd..."
       #os.system("start-stop-daemon --start --oknodo --quiet --exec /usr/sbin/" + hostapd_type + " -- /etc/hostapd/" + hostapd_type + " &")
-      os.system("/usr/sbin/" + hostapd_type + " /etc/hostapd/" + hostapd_type + " -B")
-
+      #os.system("/usr/sbin/" + hostapd_type + " /etc/hostapd/" + hostapd_type + " -B")
+      out = subprocess.check_output(["service", "hostapd", "start"])
     except subprocess.CalledProcessError as e:
       print e.output
 
@@ -100,12 +100,14 @@ network={\n""")
     f.write("  psk=\""+wpsk+"\"\n")
     f.write("}")
 
+  # set WIFI client mode
   @classmethod
   def set_start_as_client(cls):
     shutil.copy("/etc/network/interfaces_cli", "/etc/network/interfaces")
     cls._config["wifi_mode"] = "client"
     cls.save_config()
 
+  # start as client to coderbot server
   @classmethod
   def start_as_client(cls):
     cls.stop_hostapd()
@@ -117,6 +119,25 @@ network={\n""")
     except subprocess.CalledProcessError as e:
       print e.output
       raise
+
+  # set WIFI client mode and record as "local_client"
+  @classmethod
+  def set_start_as_local_client(cls):
+    shutil.copy("/etc/network/interfaces_cli", "/etc/network/interfaces")
+    cls._config["wifi_mode"] = "local_client"
+    cls.save_config()
+  
+  # start as client without registering to coderbot server
+  @classmethod
+  def start_as_local_client(cls):
+    cls.stop_hostapd()
+    try:
+      out = subprocess.check_output(["ifdown", "wlan0"])
+      out = subprocess.check_output(["ifup", "wlan0"])
+    except:
+      print e.output
+      raise
+    
 
   @classmethod
   def set_start_as_ap(cls):
@@ -139,9 +160,16 @@ network={\n""")
     elif config["wifi_mode"] == "client":
       print "starting as client..."
       try:
-        cls.start_as_client()
+        cls.start_as_start_as_local_clientclient()
       except:
         print "Unable to register ip, revert to ap mode"
+        cls.start_as_astart_as_local_clientp()
+    elif config["wifi_mode"] == "local_client":
+      print "starting as local client..."
+      try:
+        cls.start_as_local_client()
+      except:
+        print "Unable to connect to WLAN, rever to ap mode"
         cls.start_as_ap()
 
 def main():
@@ -160,6 +188,16 @@ def main():
       except:
         print "Unable to register ip, revert to ap mode"
         w.start_as_ap()
+    elif len(sys.argv) > 2 and sys.argv[2] == "local_client":
+      if len(sys.argv) > 3:
+        w.set_client_params(sys.argv[3], sys.argv[4])
+      w.set_start_as_client()
+      try:
+        w.start_as_local_client()
+      except:
+        print "Unable to connect to WLAN, revert to ap mode"
+        w.start_as_ap()
+      
   else:
     w.start_service()
 

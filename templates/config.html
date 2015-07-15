@@ -171,6 +171,8 @@
     <label for="r_wifi_mode_a">{% trans %}Access Point{% endtrans %}</label>
     <input type="radio" name="wifi_mode" id="r_wifi_mode_b" value="client" {%if config.wifi_mode=='client'%}checked="checked"{%endif%}>
     <label for="r_wifi_mode_b">{% trans %}Client{% endtrans %}</label>
+    <input type="radio" name ="wifi_mode" id="r_wifi_mode_c" value="local_client" {%if config.wifi_mode=='local_client'%}checked="checked"{%endif%}>
+    <label for="r_wifi_mode_c">Local Client</label>
    </fieldset>
    <label for="i_wifi_ssid">{% trans %}WiFi name{% endtrans %}</label>
    <input type="text" id="i_wifi_ssid" name="wifi_ssid" value="{{config.wifi_ssid}}">
@@ -207,5 +209,16 @@
    </p>
   </div>
  </div>
+</div>
+<div data-role="popup" id="popup-wifi-local-client" data-history="false" data-theme="a" class="ui-corner-all" data-dismissible="false" data-position-to "window">
+  <div style="padding:10px 20px;">
+    <h3> WiFi Local Client mode access</h3>
+    <p>Client mode is being set:
+    <ol>
+    <li>Wait 30 seconds</li>
+    <li>Connect your device to your own wifi</li>
+    <li>Click on the following link: <a href="http://192.168.0.1:8080">Local Coderbot Hub</a></li>
+    </ol>
+  </div>
 </div>
 

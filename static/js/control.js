@@ -114,8 +114,10 @@ $(document).on( "pagecreate", '#page-preferences', function( event ) {
                 $('#popup-wifi').popup('close');
                 if($("[name='wifi_mode']:checked").val()=="ap"){
 			$('#popup-wifi-ap').popup('open');
-                } else {
+                } else if ($("[name='wifi_mode']:checked").val()=="client") {
                         $('#popup-wifi-client').popup('open');
+		} else if ($("[name=wifi_mode']:checked").val()=="local_client") {
+			$('#popup-wifi-local-client').popup('open');
 		}
                 return false;
         });

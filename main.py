@@ -62,8 +62,8 @@ def handle_wifi():
     logging.info(client_params)
     os.system("sudo python wifi.py updatecfg " + mode + client_params)
     if mode == "ap":
-      return "http://coder.bot:8080";
-    else:
+      return "http://coder.bot:8080"
+    elif mode == "client":
       return "http://coderbotsrv.appspot.com/"
 
 @app.route("/bot", methods=["GET"])
