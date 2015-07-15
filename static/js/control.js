@@ -159,7 +159,7 @@ $('video').on('loadeddata', function( event, ui ) {
         }, dataType="json");       
 });
 
-$(document).on( "click", 'a[data-rel="popup"]', function( event ) {
+$(document).on( "click", 'li.ui-li-has-thumb', function( event ) {
 	var src = "/photos/" + $(this).find('img').attr('data-src');
         $('#popup-photo').find('img').attr('src', src);
         $('#popup-video').find('video').attr('src', src);
