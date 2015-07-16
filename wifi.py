@@ -9,12 +9,15 @@ import urllib2
 import fcntl
 import struct
 import json
+import ConfigParser
+import StringIO
 
 class WiFi():
 
   CONFIG_FILE = "/etc/coderbot_wifi.conf"
+  HOSTAPD_CONF_FILE = "/etc/hostapd/hostapd.conf"
   adapters = ["RT5370", "RTL8188CUS", "RT3572"] 
-  hostapds = {"RT5370": "hostapd.RT5370", "RTL8188CUS": "hostapd.RTL8188"} 
+  hostapds = {"RT5370": "hostapd.RT5370", "RTL8188CUS": "hostapd.RTL8188"}
   web_url = "http://coderbotsrv.appspot.com/register_ip"
   wifi_client_conf_file = "/etc/wpa_supplicant/wpa_supplicant.conf"
   _config = {}
@@ -51,17 +54,50 @@ class WiFi():
       print "starting hostapd..."
       #os.system("start-stop-daemon --start --oknodo --quiet --exec /usr/sbin/" + hostapd_type + " -- /etc/hostapd/" + hostapd_type + " &")
       #os.system("/usr/sbin/" + hostapd_type + " /etc/hostapd/" + hostapd_type + " -B")
-      out = subprocess.check_output(["service", "hostapd", "start"])
+      #out = subprocess.check_output(["service", "hostapd", "restart"])
+      os.system("/etc/init.d/hostapd restart")
+      #something seems to mess with the static IP when hostapd restarts, quickfix:
+      os.system("ifconfig wlan0 10.0.0.1")
     except subprocess.CalledProcessError as e:
       print e.output
 
   @classmethod
   def stop_hostapd(cls):
     try:
-      out = subprocess.check_output(["pkill", "-9", "hostapd"])
-      print out
+      #out = subprocess.check_output(["service", "hostapd", "stop"])
+      #print out
+      os.system("/etc/init.d/hostapd stop")
     except subprocess.CalledProcessError as e:
       print e.output
+
+  @classmethod
+  def set_hostapd_params(cls, wssid, wpsk):
+    config = ConfigParser.ConfigParser()
+    # configparser requires sections like '[section]'
+    # open hostapd.conf with dummy section '[hostapd]'
+    try:
+      with open(cls.HOSTAPD_CONF_FILE) as f:
+        conf_str = '[hostapd]\n' + f.read()
+        conf_fp = StringIO.StringIO(conf_str)
+        config.readfp(conf_fp)
+    except IOError as e:
+      print e
+      return
+    
+    if len(str(wpsk)) < 8:
+      wpsk='coderbot'
+    
+    config.set('hostapd','ssid',str(wssid))
+    config.set('hostapd','wpa_passphrase',str(wpsk))
+
+    try:
+      with open(cls.HOSTAPD_CONF_FILE, 'wb') as f:
+        conf_items = config.items('hostapd')
+        for (key,value) in conf_items:
+          f.write("{0}={1}\n".format(key, value))
+        f.write("\n")
+    except IOError as e:
+      print e
 
   @classmethod
   def get_ipaddr(cls, ifname):
@@ -104,6 +140,8 @@ network={\n""")
   @classmethod
   def set_start_as_client(cls):
     shutil.copy("/etc/network/interfaces_cli", "/etc/network/interfaces")
+    # disable hostapd start-on-boot
+    os.system('sudo update-rc.d hostapd remove')
     cls._config["wifi_mode"] = "client"
     cls.save_config()
 
@@ -124,6 +162,8 @@ network={\n""")
   @classmethod
   def set_start_as_local_client(cls):
     shutil.copy("/etc/network/interfaces_cli", "/etc/network/interfaces")
+    # disable hostapd start-on-boot
+    os.system('sudo update-rc.d hostapd remove')
     cls._config["wifi_mode"] = "local_client"
     cls.save_config()
   
@@ -142,6 +182,9 @@ network={\n""")
   @classmethod
   def set_start_as_ap(cls):
     shutil.copy("/etc/network/interfaces_ap", "/etc/network/interfaces")
+    # assuming /etc/init.d/hostapd start script exists
+    # enable hostapd start-on-boot
+    os.system('sudo update-rc.d hostapd defaults')
     cls._config["wifi_mode"] = "ap"
     cls.save_config()
 
@@ -160,10 +203,10 @@ network={\n""")
     elif config["wifi_mode"] == "client":
       print "starting as client..."
       try:
-        cls.start_as_start_as_local_clientclient()
+        cls.start_as_client()
       except:
         print "Unable to register ip, revert to ap mode"
-        cls.start_as_astart_as_local_clientp()
+        cls.start_as_ap()
     elif config["wifi_mode"] == "local_client":
       print "starting as local client..."
       try:
@@ -176,6 +219,8 @@ def main():
   w = WiFi()
   if len(sys.argv) > 2 and sys.argv[1] == "updatecfg":
     if len(sys.argv) > 2 and sys.argv[2] == "ap":
+      if len(sys.argv) > 3:
+        w.set_hostapd_params(sys.argv[3], sys.argv[4])
       w.set_start_as_ap()
       w.start_as_ap()
     elif len(sys.argv) > 2 and sys.argv[2] == "client":

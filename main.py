@@ -57,8 +57,8 @@ def handle_wifi():
     mode = request.form.get("wifi_mode")
     ssid = request.form.get("wifi_ssid")
     psk = request.form.get("wifi_psk")
-    logging.info( "mode ", mode, " ssid: ", ssid, " psk: ", psk)
-    client_params = " \"" + ssid + "\" \"" + psk + "\"" if ssid != "" and psk != "" else ""
+    logging.info( "mode ", str(mode), " ssid: ", str(ssid), " psk: ", str(psk))
+    client_params = " \"" + str(ssid) + "\" \"" + str(psk) + "\"" if ssid != "" and psk != "" else ""
     logging.info(client_params)
     os.system("sudo python wifi.py updatecfg " + mode + client_params)
     if mode == "ap":
@@ -124,6 +124,7 @@ def handle_photos():
 
 @app.route("/photos/<filename>", methods=["GET"])
 def handle_photo(filename):
+
     logging.info("photo")
     mimetype = {'jpeg': 'image/jpeg', 'h264': 'video/mp4'}
     video = None
