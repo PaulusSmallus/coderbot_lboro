@@ -14,52 +14,50 @@
 ### END INIT INFO
 
 PATH=/sbin:/bin:/usr/sbin:/usr/bin
-DAEMON_SBIN_1=/usr/sbin/hostapd.RT5370
-DAEMON_SBIN_2=/usr/sbin/hostapd.RTL8188
-DAEMON_DEFS_1=/etc/hostapd/hostapd.RT5370
-DAEMON_DEFS_2=/etc/hostapd/hostapd.RTL8188
-DAEMON_CONF=
+DAEMON_SBIN=/usr/sbin/hostapd
+DAEMON_DEFS=/etc/default/hostapd
+DAEMON_CONF=/etc/hostapd/hostapd.conf
 NAME=hostapd
 DESC="advanced IEEE 802.11 management"
 PIDFILE=/var/run/hostapd.pid
 
-[ -x "$DAEMON_SBIN_1" ] || exit 0
-[ -s "$DAEMON_DEFS_1" ] && . /etc/default/hostapd
+[ -x "$DAEMON_SBIN" ] || exit 0
+[ -s "$DAEMON_DEFS" ] && . /etc/default/hostapd
 [ -n "$DAEMON_CONF" ] || exit 0
 
-DAEMON_OPTS="-B -P $PIDFILE $DAEMON_OPTS $DAEMON_CONF"
 
 . /lib/lsb/init-functions
 
-case "$1" in
-  start)
+do_start() {
 	log_daemon_msg "Starting $DESC" "$NAME"
-        echo "starting 1"
-	start-stop-daemon --start --oknodo --quiet --exec "$DAEMON_SBIN_1" --pidfile "$PIDFILE" -- $DAEMON_DEFS_1 >/dev/null
-        echo "starting 2"
-	start-stop-daemon --start --oknodo --quiet --exec "$DAEMON_SBIN_2" --pidfile "$PIDFILE" -- $DAEMON_DEFS_2 >/dev/null
-        echo "$?"
-	log_end_msg "$?"
-	;;
-  stop)
-	log_daemon_msg "Stopping $DESC" "$NAME"
-	start-stop-daemon --stop --oknodo --quiet --exec "$DAEMON_SBIN_1" --pidfile "$PIDFILE"
-	start-stop-daemon --stop --oknodo --quiet --exec "$DAEMON_SBIN_2" --pidfile "$PIDFILE"
-	log_end_msg "$?"
+	start-stop-daemon --start --background --pidfile $PIDFILE --make-pidfile \
+		--startas $DAEMON_SBIN -- $DAEMON_CONF
+	log_end_msg $?
+}
+
+do_stop() {
+	log_daemon_msg "Stopping $NAME"
+	start-stop-daemon --stop --pidfile $PIDFILE --retry 10
+	log_end_msg $?
+}
+
+case "$1" in
+  start|stop)
+	do_${1}
 	;;
   reload)
   	log_daemon_msg "Reloading $DESC" "$NAME"
-	start-stop-daemon --stop --signal HUP --exec "$DAEMON_SBIN_1" --pidfile "$PIDFILE"
-	start-stop-daemon --stop --signal HUP --exec "$DAEMON_SBIN_2" --pidfile "$PIDFILE"
+	start-stop-daemon --stop --signal HUP --exec "$DAEMON_SBIN" \
+		--pidfile "$PIDFILE"
 	log_end_msg "$?"
 	;;
   restart|force-reload)
-  	$0 stop
-	sleep 8
-	$0 start
+  	do_stop
+  	sleep 8
+	do_start
 	;;
   status)
-	status_of_proc "$DAEMON_SBIN_1" "$NAME"
+	status_of_proc "$DAEMON_SBIN" "$NAME"
 	exit $?
 	;;
   *)
