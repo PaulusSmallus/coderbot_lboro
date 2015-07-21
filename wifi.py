@@ -48,15 +48,9 @@ class WiFi():
     
   @classmethod
   def start_hostapd(cls):
-    #adapter = cls.get_adapter_type()
-    #hostapd_type = cls.hostapds.get(adapter)
     try:
       print "starting hostapd..."
-      #os.system("start-stop-daemon --start --oknodo --quiet --exec /usr/sbin/" + hostapd_type + " -- /etc/hostapd/" + hostapd_type + " &")
-      #os.system("/usr/sbin/" + hostapd_type + " /etc/hostapd/" + hostapd_type + " -B")
-      #out = subprocess.check_output(["service", "hostapd", "restart"])
       os.system("/etc/init.d/hostapd restart")
-      #something seems to mess with the static IP when hostapd restarts, quickfix:
       os.system("ifconfig wlan0 10.0.0.1")
     except subprocess.CalledProcessError as e:
       print e.output
@@ -64,8 +58,6 @@ class WiFi():
   @classmethod
   def stop_hostapd(cls):
     try:
-      #out = subprocess.check_output(["service", "hostapd", "stop"])
-      #print out
       os.system("/etc/init.d/hostapd stop")
     except subprocess.CalledProcessError as e:
       print e.output
@@ -217,22 +209,33 @@ network={\n""")
 
 def main():
   w = WiFi()
+
+  #ping hub router
+  response = os.system('ping -c 1 192.168.0.1')
+  #healthy response is 0
+
+  if response == 0:
+    print 'Router has been found, staying on client mode'
+  else:
+    print 'Router not found, switching to AP mode'
+    w.start_hostapd()
+  
   if len(sys.argv) > 2 and sys.argv[1] == "updatecfg":
     if len(sys.argv) > 2 and sys.argv[2] == "ap":
       if len(sys.argv) > 3:
         w.set_hostapd_params(sys.argv[3], sys.argv[4])
-      w.set_start_as_ap()
-      w.start_as_ap()
-    elif len(sys.argv) > 2 and sys.argv[2] == "client":
+      #w.set_start_as_ap()
+      #w.start_as_ap()
+    elif len(sys.argv) > 2 and sys.argv[2] == "hub":
       if len(sys.argv) > 3:
         w.set_client_params(sys.argv[3], sys.argv[4])
-      w.set_start_as_client()
-      w.stop_hostapd()
-      try:
-        w.start_as_client()
-      except:
-        print "Unable to register ip, revert to ap mode"
-        w.start_as_ap()
+      #w.set_start_as_client()
+      #w.stop_hostapd()
+      #try:
+      #  w.start_as_client()
+      #except:
+      #  print "Unable to register ip, revert to ap mode"
+      #  w.start_as_ap()
     elif len(sys.argv) > 2 and sys.argv[2] == "local_client":
       if len(sys.argv) > 3:
         w.set_client_params(sys.argv[3], sys.argv[4])
@@ -243,8 +246,8 @@ def main():
         print "Unable to connect to WLAN, revert to ap mode"
         w.start_as_ap()
       
-  else:
-    w.start_service()
+  #else:
+  #  w.start_service()
 
 if __name__ == "__main__":
   main()

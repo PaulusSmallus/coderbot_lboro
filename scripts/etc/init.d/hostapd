@@ -1,0 +1,70 @@
+#!/bin/sh
+
+### BEGIN INIT INFO
+# Provides:		hostapd
+# Required-Start:	$remote_fs
+# Required-Stop:	$remote_fs
+# Should-Start:		$network
+# Should-Stop:
+# Default-Start:	2 3 4 5
+# Default-Stop:		0 1 6
+# Short-Description:	Advanced IEEE 802.11 management daemon
+# Description:		Userspace IEEE 802.11 AP and IEEE 802.1X/WPA/WPA2/EAP
+#			Authenticator
+### END INIT INFO
+
+PATH=/sbin:/bin:/usr/sbin:/usr/bin
+DAEMON_SBIN=/usr/sbin/hostapd
+DAEMON_DEFS=/etc/default/hostapd
+DAEMON_CONF=/etc/hostapd/hostapd.conf
+NAME=hostapd
+DESC="advanced IEEE 802.11 management"
+PIDFILE=/var/run/hostapd.pid
+
+[ -x "$DAEMON_SBIN" ] || exit 0
+[ -s "$DAEMON_DEFS" ] && . /etc/default/hostapd
+[ -n "$DAEMON_CONF" ] || exit 0
+
+
+. /lib/lsb/init-functions
+
+do_start() {
+	log_daemon_msg "Starting $DESC" "$NAME"
+	start-stop-daemon --start --background --pidfile $PIDFILE --make-pidfile \
+		--startas $DAEMON_SBIN -- $DAEMON_CONF
+	log_end_msg $?
+}
+
+do_stop() {
+	log_daemon_msg "Stopping $NAME"
+	start-stop-daemon --stop --pidfile $PIDFILE --retry 10
+	log_end_msg $?
+}
+
+case "$1" in
+  start|stop)
+	do_${1}
+	;;
+  reload)
+  	log_daemon_msg "Reloading $DESC" "$NAME"
+	start-stop-daemon --stop --signal HUP --exec "$DAEMON_SBIN" \
+		--pidfile "$PIDFILE"
+	log_end_msg "$?"
+	;;
+  restart|force-reload)
+  	do_stop
+  	sleep 8
+	do_start
+	;;
+  status)
+	status_of_proc "$DAEMON_SBIN" "$NAME"
+	exit $?
+	;;
+  *)
+	N=/etc/init.d/$NAME
+	echo "Usage: $N {start|stop|restart|force-reload|reload|status}" >&2
+	exit 1
+	;;
+esac
+
+exit 0
