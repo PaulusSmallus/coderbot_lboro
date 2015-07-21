@@ -11,6 +11,7 @@ import struct
 import json
 import ConfigParser
 import StringIO
+from time import sleep
 
 class WiFi():
 
@@ -210,6 +211,9 @@ network={\n""")
 def main():
   w = WiFi()
 
+  print 'Wait 1 seconds before checking connection to router...'
+  sleep(1)
+  print 'pinging router...'
   #ping hub router
   response = os.system('ping -c 1 192.168.0.1')
   #healthy response is 0
