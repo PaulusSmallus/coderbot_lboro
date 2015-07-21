@@ -51,15 +51,14 @@ class WiFi():
   def start_hostapd(cls):
     try:
       print "starting hostapd..."
-      os.system("/etc/init.d/hostapd restart")
-      os.system("ifconfig wlan0 10.0.0.1")
+      os.system("sudo service hostapd restart")
     except subprocess.CalledProcessError as e:
       print e.output
 
   @classmethod
   def stop_hostapd(cls):
     try:
-      os.system("/etc/init.d/hostapd stop")
+      os.system("sudo service hostapd stop")
     except subprocess.CalledProcessError as e:
       print e.output
 
@@ -116,78 +115,6 @@ class WiFi():
     print botname, ": ", ipaddr
 
   @classmethod
-  def get_wlans(cls):
-    out = subprocess.check_output(["iwlist", "wlan0", "scan"])  
-
-  @classmethod
-  def set_client_params(cls, wssid, wpsk):
-    f = open (cls.wifi_client_conf_file, "w+")
-    f.write("""ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev
-update_config=1
-network={\n""")
-    f.write("  ssid=\""+wssid+"\"\n")
-    f.write("  psk=\""+wpsk+"\"\n")
-    f.write("}")
-
-  # set WIFI client mode
-  @classmethod
-  def set_start_as_client(cls):
-    shutil.copy("/etc/network/interfaces_cli", "/etc/network/interfaces")
-    # disable hostapd start-on-boot
-    os.system('sudo update-rc.d hostapd remove')
-    cls._config["wifi_mode"] = "client"
-    cls.save_config()
-
-  # start as client to coderbot server
-  @classmethod
-  def start_as_client(cls):
-    cls.stop_hostapd()
-    try:
-      out = subprocess.check_output(["ifdown", "wlan0"])
-      out = subprocess.check_output(["ifup", "wlan0"])
-      print "registering ip..."
-      cls.register_ipaddr(cls.get_ipaddr("wlan0"), "CoderBot")
-    except subprocess.CalledProcessError as e:
-      print e.output
-      raise
-
-  # set WIFI client mode and record as "local_client"
-  @classmethod
-  def set_start_as_local_client(cls):
-    shutil.copy("/etc/network/interfaces_cli", "/etc/network/interfaces")
-    # disable hostapd start-on-boot
-    os.system('sudo update-rc.d hostapd remove')
-    cls._config["wifi_mode"] = "local_client"
-    cls.save_config()
-  
-  # start as client without registering to coderbot server
-  @classmethod
-  def start_as_local_client(cls):
-    cls.stop_hostapd()
-    try:
-      out = subprocess.check_output(["ifdown", "wlan0"])
-      out = subprocess.check_output(["ifup", "wlan0"])
-    except:
-      print e.output
-      raise
-    
-
-  @classmethod
-  def set_start_as_ap(cls):
-    shutil.copy("/etc/network/interfaces_ap", "/etc/network/interfaces")
-    # assuming /etc/init.d/hostapd start script exists
-    # enable hostapd start-on-boot
-    os.system('sudo update-rc.d hostapd defaults')
-    cls._config["wifi_mode"] = "ap"
-    cls.save_config()
-
-  @classmethod
-  def start_as_ap(cls):
-    out = subprocess.check_output(["ifdown", "wlan0"])
-    out = subprocess.check_output(["ifup", "wlan0"])
-    cls.start_hostapd()
-
-  @classmethod
   def start_service(cls):
     config = cls.load_config()
     if config["wifi_mode"] == "ap":
@@ -211,8 +138,9 @@ network={\n""")
 def main():
   w = WiFi()
 
-  print 'Wait 1 seconds before checking connection to router...'
-  sleep(1)
+  print 'Testing Client Connection...'
+  print 'Wait 3 seconds before checking connection to router...'
+  sleep(3)
   print 'pinging router...'
   #ping hub router
   response = os.system('ping -c 1 192.168.0.1')
@@ -222,7 +150,15 @@ def main():
     print 'Router has been found, staying on client mode'
   else:
     print 'Router not found, switching to AP mode'
+    #setup hotspot
+    shutil.copy("/etc/network/interfaces_ap", "/etc/network/interfaces")
+    print 'restart networking...'
+    os.system('sudo service networking restart')
     w.start_hostapd()
+    print 'Waiting for hostapd to startup'
+    sleep(3)
+    print 'copying client interfaces back for next time'
+    shutil.copy("/etc/network/interfaces_cli", "/etc/network/interfaces")
   
   if len(sys.argv) > 2 and sys.argv[1] == "updatecfg":
     if len(sys.argv) > 2 and sys.argv[2] == "ap":
