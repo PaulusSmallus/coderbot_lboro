@@ -17,6 +17,7 @@ class WiFi():
 
   CONFIG_FILE = "/etc/coderbot_wifi.conf"
   HOSTAPD_CONF_FILE = "/etc/hostapd/hostapd.conf"
+  INTERFACES_FILE = "/etc/network/interfaces_cli"
   adapters = ["RT5370", "RTL8188CUS", "RT3572"] 
   hostapds = {"RT5370": "hostapd.RT5370", "RTL8188CUS": "hostapd.RTL8188"}
   web_url = "http://coderbotsrv.appspot.com/register_ip"
@@ -91,6 +92,42 @@ class WiFi():
     except IOError as e:
       print e
 
+  def set_client_params(cls, wssid, wpsk, number):
+    config = ConfigParser.ConfigParser()
+    # configparser requires sections like '[section]'
+    # open hostapd.conf with dummy section '[interfaces]'
+
+    try:
+      with open(cls.INTERFACES_FILE) as f:
+        inter_split = f.read().split("static")
+        inter_start = inter_split[0] + "static\n"
+        conf_str = '[interfaces]\n' + inter_split[1]
+        #parser needs = to work
+        conf_str = conf_str.replace(" ","=")
+        conf_fp = StringIO.StringIO(conf_str)
+        config.readfp(conf_fp)
+        
+    except IOError as e:
+      print e
+      return
+      
+    config.set('interfaces','address',"192.168.0.1" + number)
+    config.set('interfaces','wpa-ssid',str(wssid))
+    config.set('interfaces','wpa-psk',str(wpsk))
+    
+    try:
+      with open(cls.INTERFACES_FILE, 'wb') as f:
+        conf_items = config.items('interfaces')
+        f.write(inter_start)
+        for (key,value) in conf_items:
+          #quick workaround for values with spaces in
+          value = value.replace("wlan0=inet=static","wlan0 inet static")
+          f.write("{0} {1}\n".format(key, value))
+        f.write("\n")
+    except IOError as e:
+      print e
+    shutil.copy(cls.INTERFACES_FILE, "/etc/network/interfaces")	
+
   @classmethod
   def get_ipaddr(cls, ifname):
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -137,57 +174,46 @@ class WiFi():
 
 def main():
   w = WiFi()
-
-  print 'Testing Client Connection...'
-  print 'Wait 3 seconds before checking connection to router...'
-  sleep(3)
-  print 'pinging router...'
-  #ping hub router
-  response = os.system('ping -c 1 192.168.0.1')
-  #healthy response is 0
-
-  if response == 0:
-    print 'Router has been found, staying on client mode'
-  else:
-    print 'Router not found, switching to AP mode'
-    #setup hotspot
-    shutil.copy("/etc/network/interfaces_ap", "/etc/network/interfaces")
-    print 'restart networking...'
-    os.system('sudo service networking restart')
-    w.start_hostapd()
-    print 'Waiting for hostapd to startup'
+  if len(sys.argv) < 2:
+    print 'Testing Client Connection...'
+    print 'Wait 3 seconds before checking connection to router...'
     sleep(3)
-    print 'copying client interfaces back for next time'
-    shutil.copy("/etc/network/interfaces_cli", "/etc/network/interfaces")
+    print 'pinging router...'
+    #ping hub router
+    response = os.system('ping -c 1 192.168.0.1')
+    #healthy response is 0
+
+    if response == 0:
+      print 'Router has been found, staying on client mode'
+    else:
+      print 'Router not found, switching to AP mode'
+      #setup hotspot
+      shutil.copy("/etc/network/interfaces_ap", "/etc/network/interfaces")
+      print 'restart networking...'
+      os.system('sudo service networking restart')
+      w.start_hostapd()
+      print 'Waiting for hostapd to startup'
+      sleep(3)
+      print 'copying client interfaces back for next time'
+      shutil.copy("/etc/network/interfaces_cli", "/etc/network/interfaces")
   
-  if len(sys.argv) > 2 and sys.argv[1] == "updatecfg":
-    if len(sys.argv) > 2 and sys.argv[2] == "ap":
-      if len(sys.argv) > 3:
-        w.set_hostapd_params(sys.argv[3], sys.argv[4])
-      #w.set_start_as_ap()
-      #w.start_as_ap()
-    elif len(sys.argv) > 2 and sys.argv[2] == "hub":
-      if len(sys.argv) > 3:
-        w.set_client_params(sys.argv[3], sys.argv[4])
-      #w.set_start_as_client()
-      #w.stop_hostapd()
-      #try:
-      #  w.start_as_client()
-      #except:
-      #  print "Unable to register ip, revert to ap mode"
-      #  w.start_as_ap()
-    elif len(sys.argv) > 2 and sys.argv[2] == "local_client":
-      if len(sys.argv) > 3:
-        w.set_client_params(sys.argv[3], sys.argv[4])
-      w.set_start_as_client()
-      try:
-        w.start_as_local_client()
-      except:
-        print "Unable to connect to WLAN, revert to ap mode"
-        w.start_as_ap()
-      
-  #else:
-  #  w.start_service()
+  elif sys.argv[1] == "updatecfg":
+    if len(sys.argv) == 3:
+      print "updating configs..."
+      #Update config to use this number, eg. for 7
+      #client ip goes to 192.168.0.7
+      w.set_client_params("Lboro_Coderbot_Hub","welovepis", sys.argv[2])
+      #hostspot ssid goes to Lboro Coderbot 7
+      w.set_hostapd_params("Lboro Coderbot " + sys.argv[2], "coderbot")
+      print "done!"
+    else:
+      if len(sys.argv) > 2 and sys.argv[2] == "ap":
+        if len(sys.argv) > 3:
+          w.set_hostapd_params(sys.argv[3], sys.argv[4])
+      elif len(sys.argv) > 2 and sys.argv[2] == "client":
+        if len(sys.argv) > 4:
+          w.set_client_params(sys.argv[3], sys.argv[4], sys.argv[5])
+
 
 if __name__ == "__main__":
   main()
