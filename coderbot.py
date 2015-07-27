@@ -116,6 +116,8 @@ class CoderBot:
     # transform speed value from -100 to +100 range
     # to servo duty cycle range: 100 to 200
     speed = 150 + speed/2
+	if (speed < 90): speed = 90
+	if (speed > 210): speed = 210
     self.pi.set_PWM_range(pin, PWM_RANGE)
     self.pi.set_PWM_frequency(pin, PWM_FREQUENCY)
     self.pi.set_PWM_dutycycle(pin, speed)
@@ -125,6 +127,8 @@ class CoderBot:
     # assuming angle range is 0 to 120
     # transform from angle range to servo duty cycle range (100 to 200)
     duty = angle + 90 # (90-210)
+	if (duty < 90): duty = 90
+	if (duty > 210): duty = 210
     self.pi.set_PWM_range(pin, PWM_RANGE)
     self.pi.set_PWM_frequency(pin, PWM_FREQUENCY)
     self.pi.set_PWM_dutycycle(pin, duty)
