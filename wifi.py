@@ -176,8 +176,8 @@ def main():
   w = WiFi()
   if len(sys.argv) < 2:
     print 'Testing Client Connection...'
-    print 'Wait 3 seconds before checking connection to router...'
-    sleep(3)
+    print 'Wait 5 seconds before checking connection to router...'
+    sleep(5)
     print 'pinging router...'
     #ping hub router
     response = os.system('ping -c 1 192.168.0.1')
