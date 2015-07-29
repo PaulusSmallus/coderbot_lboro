@@ -11,10 +11,6 @@ import logging
 from viz import camera, streamer, image, blob
 import config
 
-import picamera
-import picamera.array
-import io
-
 CAMERA_REFRESH_INTERVAL=0.1
 MAX_IMAGE_AGE = 0.0
 PHOTO_PATH = "./photos"
@@ -24,10 +20,6 @@ VIDEO_PREFIX = "VID"
 PHOTO_THUMB_SUFFIX = "_thumb"
 PHOTO_THUMB_SIZE = (240,180)
 VIDEO_ELAPSE_MAX = 900
-PHOTO_FILE_EXT = ".jpg"
-FFMPEG_CMD = "MP4Box"
-VIDEO_FILE_EXT = ".mp4"
-VIDEO_FILE_EXT_H264 = ".h264"
 
 class Camera(Thread):
 
@@ -49,7 +41,19 @@ class Camera(Thread):
 
   def __init__(self):
     logging.info("starting camera")
-    self.init_camera()
+    cam_props = {
+      "width":640,
+      "height":480,
+      "exposure_mode": config.Config.get().get("camera_exposure_mode"),
+      "rotation": config.Config.get().get("camera_rotation")
+    }
+    #try initialising the camera
+    try:
+      self._camera = camera.Camera(props=cam_props)
+    except:
+      self._camera = None
+      logging.error("Unexpected error:" + str(sys.exc_info()[0]))
+      pass
         
     self._streamer = streamer.JpegStreamer("0.0.0.0:"+str(self.stream_port), st=0.1)
     #self._cam_off_img.save(self._streamer)
@@ -68,74 +72,18 @@ class Camera(Thread):
    
     super(Camera, self).__init__()
 
-  def init_camera(self):
-    try:
-      props = {
-        "width":640,
-        "height":480,
-        "exposure_mode":config.Config.get().get("camera_exposure_mode"),
-        "rotation":config.Config.get().get("camera_rotation")
-      }
-      self._camera = picamera.PiCamera()
-      cam = self._camera
-      res = (props.get("width",640), props.get("height",480))
-      cam.resolution = res
-      cam.framerate = 30
-      cam.exposure_mode = props.get("exposure_mode")
-      cam.rotation = props.get("rotation")
-      self.out_jpeg = io.BytesIO()
-      self.out_rgb = picamera.array.PiRGBArray(cam, size=res)
-      self.h264_encoder = None
-      self.recording = None
-      self.video_filename = None
-    except:
-      self._camera = None
-      logging.error("Could not initialise camera:" + str(sys.exc_info()[0]))
-      pass
-
-  def grab_start(self):
-    logging.debug("grab_start")
-    camera_port_0, output_port_0 = self._camera._get_ports(True, 0)
-    self.jpeg_encoder = self._camera._get_image_encoder(camera_port_0, output_port_0, 'jpeg', None, quality=40)
-    camera_port_1, output_port_1 = self._camera._get_ports(True, 1)
-    self.rgb_encoder = self._camera._get_image_encoder(camera_port_1, output_port_1, 'bgr', res)
-    
-    with self._camera._encoders_lock:
-      self._camera._encoders[0] = self.jpeg_encoder
-      self._camera._encoders[1] = self.rgb_encoder
-
-  def grab_one(self):
-    self.out_jpeg.seek(0)
-    self.out_rgb.seek(0)
-    self.jpeg_encoder.start(self.out_jpeg)
-    self.rgb_encoder.start(self.out_rgb)
-    if not self.jpeg_encoder.wait(10):
-      raise picamera.PiCameraError('Timed Out')
-    if not self.rgb_encoder.wait(10):
-      raise picamera.PiCameraError('Timed Out')
-
-  def grab_stop(self):
-    logging.debug("grab_stop")
-    
-    with self._camera._encoders_lock:
-      del self._camera._encoders[0]
-      del self._camera._encoders[1]
-    
-    self.jpeg_encoder.close()
-    self.rgb_encoder.close()
-
   def run(self):
     if self._camera is None:
       return
     try:
-      self.grab_start()
+      self._camera.grab_start()
       while self._run:
         sleep_time = CAMERA_REFRESH_INTERVAL - (time.time() - self._image_time)
         if sleep_time <= 0:
           ts = time.time()
           #print "run.1"
           self._image_lock.acquire()
-          self.grab_one()
+          self._camera.grab_one()
           self._image_lock.release()
           #print "run.2: " + str(time.time()-ts)
           #self.save_image(image.Image(self._camera.get_image_bgr()).open().binarize().to_jpeg())
@@ -143,7 +91,7 @@ class Camera(Thread):
             self.save_image(self._image_cache.to_jpeg())
             self._image_cache_updated = False
           else:
-            self.save_image(self.out_jpeg.getvalue())
+            self.save_image(self._camera.get_image_jpeg())
           #print "run.3: " + str(time.time()-ts)
         else:
           time.sleep(sleep_time)
@@ -151,7 +99,7 @@ class Camera(Thread):
         if self.recording and time.time() - self.video_start_time > VIDEO_ELAPSE_MAX:
           self.video_stop()
 
-      self.grab_stop()
+      self._camera.grab_stop()
     except:
       logging.error("Unexpected error:" + str(sys.exc_info()[0]))
       raise
@@ -161,7 +109,7 @@ class Camera(Thread):
       print "get_image: Default image"
       return Image(cv2.imread(DEFAULT_IMAGE))
     else:
-      return image.Image(self.out_rgb.array)
+      return image.Image(self._camera.get_image_bgr())
 
   def save_image(self, image_jpeg):
     self._streamer.set_image(image_jpeg)
@@ -170,13 +118,13 @@ class Camera(Thread):
   def set_text(self, text):
     if self._camera is None:
       return
-    self._camera.annotate_text(str(text))
+    self._camera.set_overlay_text(str(text))
 
   def get_next_photo_index(self):
     last_photo_index = 0
     for p in self._photos:
       try:
-        index = int(p[len(PHOTO_PREFIX):-len(self.PHOTO_FILE_EXT)])
+        index = int(p[len(PHOTO_PREFIX):-len(self._camera.PHOTO_FILE_EXT)])
         if index > last_photo_index:
           last_photo_index = index
       except:
@@ -186,21 +134,21 @@ class Camera(Thread):
   def rotate(self):
     if self._camera is None:
       return
-    rot = self._camera.rotation
+    rot = self._camera.camera.rotation
     rot = rot + 90
     if rot > 271:
       rot = 0
-    self._camera.rotation = rot
+    self._camera.camera.rotation = rot
 
   def photo_take(self):
     if self._camera is None:
       return
     photo_index = self.get_next_photo_index()
-    filename = PHOTO_PREFIX + str(photo_index) + PHOTO_FILE_EXT;
-    filename_thumb = PHOTO_PREFIX + str(photo_index) + PHOTO_THUMB_SUFFIX + PHOTO_FILE_EXT;
+    filename = PHOTO_PREFIX + str(photo_index) + self._camera.PHOTO_FILE_EXT;
+    filename_thumb = PHOTO_PREFIX + str(photo_index) + PHOTO_THUMB_SUFFIX + self._camera.PHOTO_FILE_EXT;
     of = open(PHOTO_PATH + "/" + filename, "w+")
     oft = open(PHOTO_PATH + "/" + filename_thumb, "w+")
-    im_str = self.out_jpeg.getvalue()
+    im_str = self._camera.get_image_jpeg()
     of.write(im_str)
     # thumb
     im_pil = PILImage.open(StringIO(im_str)) 
@@ -211,11 +159,12 @@ class Camera(Thread):
     return self.recording
 
   def video_rec(self, video_name=None):
-    if self.recording:
-      return
-    if self._camera is None:
+    if self.is_recording():
       return
     self.recording = True
+    if self._camera is None:
+      return
+    
     if video_name is None:
       video_index = self.get_next_photo_index()
       filename = VIDEO_PREFIX + str(video_index) + self._camera.VIDEO_FILE_EXT;

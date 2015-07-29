@@ -101,6 +101,10 @@ class Image():
           
       return blobs
 
+    def find_contours(self):
+      contours, hierarchy = cv2.findContours(self._data, cv2.cv.CV_RETR_TREE, cv2.cv.CV_CHAIN_APPROX_SIMPLE)
+      return contours, hierarchy
+
     def find_template(self, img_template):
       # Initiate SIFT detector
       sift = cv2.SIFT()
@@ -149,3 +153,8 @@ class Image():
       return np.array(jpeg_array).tostring()
 
 
+    def draw_contour_bound_circle(self, contour, color=(0,255,0)):
+      (x,y),radius = cv2.minEnclosingCircle(contour)
+      center = (int(x), int(y))
+      radius = int(radius)
+      cv2.circle(self._data, center, radius, color, 2)

@@ -820,3 +820,43 @@ Blockly.Python['coderbot_armLower'] = function(block) {
   // Generate Python code for lowering the arm
   return 'get_bot().servo3(' + CODERBOT_ARM_ANGLE_LOWERED + ')\n';
 };
+
+
+Blockly.Blocks['coderbot_printCircle'] = {
+  /**
+   * Block for printing a circle on the screen at a given coordinate
+   * @this Blockly.Block
+   */
+  init: function() {
+    this.appendValueInput("colourX")
+        .setCheck("Number")
+        .appendField("Print circle of colour")
+        .appendField(new Blockly.FieldColour("#ff0000"), "COLOUR_PARAM")
+        .appendField("at coordinates X");
+    this.appendValueInput("colourY")
+        .setCheck("Number")
+        .appendField(" and Y");
+    this.setInputsInline(true);
+    this.setPreviousStatement(true, null);
+    this.setNextStatement(true, null);
+    this.setColour(30);
+    this.setTooltip('');
+    this.setHelpUrl('http://www.example.com/');
+  }
+};
+
+Blockly.JavaScript['coderbot_printCircle'] = function(block) {
+  var colour_param = block.getFieldValue('COLOUR_PARAM');
+  var value_colourx = Blockly.JavaScript.valueToCode(block, 'colourX', Blockly.JavaScript.ORDER_ATOMIC);
+  var value_coloury = Blockly.JavaScript.valueToCode(block, 'colourY', Blockly.JavaScript.ORDER_ATOMIC);
+  // TODO: Assemble JavaScript into code variable.
+  return 'get_cam().drawCircle(' + colour_param + ',' + value_colourx + ',' + value_coloury + ';\n';
+};
+
+Blockly.Python['coderbot_printCircle'] = function(block) {
+  var colour_param = block.getFieldValue('COLOUR_PARAM');
+  var value_colourx = Blockly.Python.valueToCode(block, 'colourX', Blockly.Python.ORDER_ATOMIC);
+  var value_coloury = Blockly.Python.valueToCode(block, 'colourY', Blockly.Python.ORDER_ATOMIC);
+  // TODO: Assemble Python into code variable.
+  return 'get_cam().drawCircle(' + colour_param + ',' + value_colourx + ',' + value_coloury + ';\n';
+};

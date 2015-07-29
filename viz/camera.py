@@ -21,7 +21,7 @@ class Camera():
     self.camera.exposure_mode = props.get('exposure_mode')
     self.camera.rotation = props.get('rotation')
     self.out_jpeg = io.BytesIO()
-    self.out_rgb = picamera.array.PiRGBArray(self.camera, size=(160,120))
+    self.out_rgb = picamera.array.PiRGBArray(self.camera, size=(640,480))#160,120
     self.h264_encoder = None
     self.recording = None
     self.video_filename = None
@@ -60,7 +60,7 @@ class Camera():
     camera_port_0, output_port_0 = self.camera._get_ports(True, 0)
     self.jpeg_encoder = self.camera._get_image_encoder(camera_port_0, output_port_0, 'jpeg', None, quality=40)
     camera_port_1, output_port_1 = self.camera._get_ports(True, 1)
-    self.rgb_encoder = self.camera._get_image_encoder(camera_port_1, output_port_1, 'bgr', (160, 120))
+    self.rgb_encoder = self.camera._get_image_encoder(camera_port_1, output_port_1, 'bgr', (640, 480))#160,120
     #print "g.1: " + str(ts - time.time())
     #ts = time.time()
 
@@ -103,7 +103,7 @@ class Camera():
     camera_port_0, output_port_0 = self.camera._get_ports(True, 0)
     self.jpeg_encoder = self.camera._get_image_encoder(camera_port_0, output_port_0, 'jpeg', None, quality=40)
     camera_port_1, output_port_1 = self.camera._get_ports(True, 1)
-    self.rgb_encoder = self.camera._get_image_encoder(camera_port_1, output_port_1, 'bgr', (160, 120))
+    self.rgb_encoder = self.camera._get_image_encoder(camera_port_1, output_port_1, 'bgr', (640, 480)) #160,120
 
     with self.camera._encoders_lock:
       self.camera._encoders[0] = self.jpeg_encoder
