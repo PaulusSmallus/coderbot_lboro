@@ -48,3 +48,6 @@ Blockly.Msg.CODERBOT_SENSOR_FINDFACE_Y = "y coord";
 Blockly.Msg.CODERBOT_SENSOR_FINDFACE_SIZE = "size";
 Blockly.Msg.CODERBOT_SENSOR_FINDFACE_ALL = "x, y, size (as list)";
 Blockly.Msg.CODERBOT_SENSOR_FINDLOGO = "find logo";
+Blockly.Msg.CODERBOT_LED = "turn LED on for a set time";
+Blockly.Msg.CODERBOT_LED_ON = "turns LED on"
+Blockly.Msg.CODERBOT_LED_OFF = "turns LED off"

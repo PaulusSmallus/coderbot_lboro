@@ -166,6 +166,7 @@
       <block type="colour_random"></block>
       <block type="colour_rgb"></block>
       <block type="colour_blend"></block>
+      <block type="coderbot_printColour"></block>
     </category>
     <category name="{% trans %}Variables{% endtrans %}" custom="VARIABLE"></category>
     <category name="{% trans %}Functions{% endtrans %}" custom="PROCEDURE"></category>
@@ -249,5 +250,16 @@
     </category>
     <category name="{% trans %}Sound{% endtrans %}">
       <block type="coderbot_say"></block>
-    </category>      
+    </category>  
+    <category name="{% trans %}LED{% endtrans %}">
+      <block type="turn_led_on">
+        <value name="seconds">
+          <block type="math_number">
+            <field name="NUM">3</field>
+          </block>
+        </value>
+      </block>
+      <block type="led_on"></block>
+      <block type="led_off"></block> 
+    </category> 
   </xml>

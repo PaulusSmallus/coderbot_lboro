@@ -10,6 +10,9 @@ PIN_RIGHT_BACKWARD = 17 # NOT USED FOR SERVOS
 PIN_PUSHBUTTON = 18
 PIN_SERVO_3 = 9 # ARM PIN
 PIN_SERVO_4 = 10
+LED_RED = 21
+LED_YELLOW = 20
+LED_GREEN = 16
 
 PWM_FREQUENCY = 50 #Hz
 PWM_RANGE = 2000 #100-200 duty cycle operating range for servos
@@ -174,4 +177,31 @@ class CoderBot:
     os.system ('sudo reboot')
 
 
-  
+  def LED_on(self, Colour, seconds, pin=0):
+    if Colour == "Red LED":
+      pin = 21
+    elif Colour == "Green LED":
+      pin = 16
+    elif Colour == "Yellow LED":
+      pin = 20
+    self.pi.write(pin, 1)
+    time.sleep(seconds)
+    self.pi.write(pin, 0)
+
+  def LED_on_indef(self, Colour, pin=0):
+    if Colour == "Red LED":
+      pin = 21
+    elif Colour == "Green LED":
+      pin = 16
+    elif Colour == "Yellow LED":
+      pin = 20
+    self.pi.write(pin, 1)
+
+  def LED_off_indef(self, Colour, pin=0):
+    if Colour == "Red LED":
+      pin = 21
+    elif Colour == "Green LED":
+      pin = 16
+    elif Colour == "Yellow LED":
+      pin = 20
+    self.pi.write(pin, 0)  

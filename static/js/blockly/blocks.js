@@ -820,3 +820,130 @@ Blockly.Python['coderbot_armLower'] = function(block) {
   // Generate Python code for lowering the arm
   return 'get_bot().servo3(' + CODERBOT_ARM_ANGLE_LOWERED + ')\n';
 };
+
+
+Blockly.Blocks['coderbot_printCircle'] = {
+  /**
+   * Block for printing a circle on the screen at a given coordinate
+   * @this Blockly.Block
+   */
+  init: function() {
+    this.appendValueInput("colourX")
+        .setCheck("Number")
+        .appendField("Print circle of colour")
+        .appendField(new Blockly.FieldColour("#ff0000"), "COLOUR_PARAM")
+        .appendField("at coordinates X");
+    this.appendValueInput("colourY")
+        .setCheck("Number")
+        .appendField(" and Y");
+    this.setInputsInline(true);
+    this.setPreviousStatement(true, null);
+    this.setNextStatement(true, null);
+    this.setColour(30);
+    this.setTooltip('');
+    this.setHelpUrl('http://www.example.com/');
+  }
+};
+
+Blockly.JavaScript['coderbot_printCircle'] = function(block) {
+  var colour_param = block.getFieldValue('COLOUR_PARAM');
+  var value_colourx = Blockly.JavaScript.valueToCode(block, 'colourX', Blockly.JavaScript.ORDER_ATOMIC);
+  var value_coloury = Blockly.JavaScript.valueToCode(block, 'colourY', Blockly.JavaScript.ORDER_ATOMIC);
+  // TODO: Assemble JavaScript into code variable.
+  return 'get_cam().drawCircle(' + colour_param + ',' + value_colourx + ',' + value_coloury + ';\n';
+};
+
+Blockly.Python['coderbot_printCircle'] = function(block) {
+  var colour_param = block.getFieldValue('COLOUR_PARAM');
+  var value_colourx = Blockly.Python.valueToCode(block, 'colourX', Blockly.Python.ORDER_ATOMIC);
+  var value_coloury = Blockly.Python.valueToCode(block, 'colourY', Blockly.Python.ORDER_ATOMIC);
+  // TODO: Assemble Python into code variable.
+  return 'get_cam().drawCircle(' + colour_param + ',' + value_colourx + ',' + value_coloury + ';\n';
+};
+
+Blockly.Blocks['turn_led_on'] = {
+  init: function() {
+    this.appendValueInput("seconds")
+      .setCheck("Number")
+      .appendField("Turn the ")
+      .appendField(new Blockly.FieldDropdown([["red", "Red LED"], ["green", "Green LED"], ["yellow", "Yellow LED"]]), "Colour")
+      .appendField("LED on for ");
+    this.appendDummyInput()
+      .appendField("seconds");
+    this.setInputsInline(true);
+    this.setHelpUrl(Blockly.Msg.CODERBOT_LED);
+    this.setColour(355);
+    this.setPreviousStatement(true,null);
+    this.setNextStatement(true,null);
+    this.setTooltip('Coderbot_LED');
+  }
+};
+
+Blockly.JavaScript['turn_led_on'] = function(block) {
+  // Generate JavaScrip code for LED lights
+  var dropdown_colour = block.getFieldValue('Colour');
+  var time = Blockly.Javascript.valueToCode(block, 'seconds', Blockly.Javascript.ORDER_ATOMIC);
+  return 'get_bot().LED_on();\n';
+};
+
+Blockly.Python['turn_led_on'] = function(block) {
+  // Generate Python code for LED lights
+  var dropdown_colour = block.getFieldValue('Colour');
+  var time = Blockly.Python.valueToCode(block, 'seconds', Blockly.Python.ORDER_ATOMIC);
+  var code =  "get_bot().LED_on(Colour=\"" + dropdown_colour + "\", seconds=" +time + ")\n";
+  return code;
+};
+
+Blockly.Blocks['led_on'] = {
+  init: function() {
+    this.appendDummyInput()
+      .appendField("Turn the ")
+      .appendField(new Blockly.FieldDropdown([["red", "Red LED"], ["green", "Green LED"], ["yellow", "Yellow LED"]]), "Colour")
+      .appendField("LED on");
+    this.setHelpUrl(Blockly.Msg.CODERBOT_LED_ON);
+    this.setColour(355);
+    this.setPreviousStatement(true,null);
+    this.setNextStatement(true,null);
+    this.setTooltip('Coderbot_LED');
+  }
+};
+
+Blockly.JavaScript['led_on'] = function(block) {
+  // Generate JavaScrip code for LED lights
+  var dropdown_colour = block.getFieldValue('Colour');
+  return 'get_bot().LED_on_indef();\n';
+};
+
+Blockly.Python['led_on'] = function(block) {
+  // Generate Python code for LED lights
+  var dropdown_colour = block.getFieldValue('Colour');
+  var code =  "get_bot().LED_on_indef(Colour=\"" + dropdown_colour + "\"" + ")\n";
+  return code;
+};
+
+Blockly.Blocks['led_off'] = {
+  init: function() {
+    this.appendDummyInput()
+      .appendField("Turn the ")
+      .appendField(new Blockly.FieldDropdown([["red", "Red LED"], ["green", "Green LED"], ["yellow", "Yellow LED"]]), "Colour")
+      .appendField("LED off");
+    this.setHelpUrl(Blockly.Msg.CODERBOT_LED_OFF);
+    this.setColour(355);
+    this.setPreviousStatement(true,null);
+    this.setNextStatement(true,null);
+    this.setTooltip('Coderbot_LED');
+  }
+};
+
+Blockly.JavaScript['led_off'] = function(block) {
+  // Generate JavaScrip code for LED lights
+  var dropdown_colour = block.getFieldValue('Colour');
+  return 'get_bot().LED_on_indef();\n';
+};
+
+Blockly.Python['led_off'] = function(block) {
+  // Generate Python code for LED lights
+  var dropdown_colour = block.getFieldValue('Colour');
+  var code =  "get_bot().LED_off_indef(Colour=\"" + dropdown_colour + "\"" + ")\n";
+  return code;
+};
