@@ -166,7 +166,7 @@
       <block type="colour_random"></block>
       <block type="colour_rgb"></block>
       <block type="colour_blend"></block>
-      <block type="coderbot_printColour"></block>
+      <block type="coderbot_printCircle"></block>
     </category>
     <category name="{% trans %}Variables{% endtrans %}" custom="VARIABLE"></category>
     <category name="{% trans %}Functions{% endtrans %}" custom="PROCEDURE"></category>
