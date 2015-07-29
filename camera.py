@@ -14,6 +14,9 @@ import config
 import picamera
 import picamera.array
 import io
+import cv2
+import colorsys
+import numpy as np
 
 CAMERA_REFRESH_INTERVAL=0.1
 MAX_IMAGE_AGE = 0.0
@@ -28,16 +31,20 @@ PHOTO_FILE_EXT = ".jpg"
 FFMPEG_CMD = "MP4Box"
 VIDEO_FILE_EXT = ".mp4"
 VIDEO_FILE_EXT_H264 = ".h264"
+MIN_MATCH_COUNT = 10
+
 
 class Camera(Thread):
 
   _instance = None
-  _img_template = image.Image.load("coderdojo-logo.png")
+  _img_template = cv2.imread("coderdojo-logo.png")
   _warp_corners_1 = [(0, -120), (640, -120), (380, 480), (260, 480)]
   _warp_corners_2 = [(0, -60), (320, -60), (190, 240), (130, 240)]
   _warp_corners_4 = [(0, -30), (160, -30), (95, 120), (65, 120)]
   _image_cache = None
   _image_cache_updated = False
+  _face_cascade = cv2.CascadeClassifier('/usr/local/share/OpenCV/lbpcascades/lbpcascade_frontalface.xml')
+  
   stream_port = 9080
 
   @classmethod
@@ -95,10 +102,13 @@ class Camera(Thread):
 
   def grab_start(self):
     logging.debug("grab_start")
+    
+    rgb_res = (640,480)
+
     camera_port_0, output_port_0 = self._camera._get_ports(True, 0)
     self.jpeg_encoder = self._camera._get_image_encoder(camera_port_0, output_port_0, 'jpeg', None, quality=40)
     camera_port_1, output_port_1 = self._camera._get_ports(True, 1)
-    self.rgb_encoder = self._camera._get_image_encoder(camera_port_1, output_port_1, 'bgr', res)
+    self.rgb_encoder = self._camera._get_image_encoder(camera_port_1, output_port_1, 'bgr', rgb_res)
     
     with self._camera._encoders_lock:
       self._camera._encoders[0] = self.jpeg_encoder
@@ -140,10 +150,11 @@ class Camera(Thread):
           #print "run.2: " + str(time.time()-ts)
           #self.save_image(image.Image(self._camera.get_image_bgr()).open().binarize().to_jpeg())
           if self._image_cache_updated is True:
-            self.save_image(self._image_cache.to_jpeg())
+            ret, jpeg_array = cv2.imencode('.jpeg', self._image_cache)
+            self.jpeg_to_stream(np.array(jpeg_array).tostring())
             self._image_cache_updated = False
           else:
-            self.save_image(self.out_jpeg.getvalue())
+            self.jpeg_to_stream(self.out_jpeg.getvalue())
           #print "run.3: " + str(time.time()-ts)
         else:
           time.sleep(sleep_time)
@@ -156,21 +167,28 @@ class Camera(Thread):
       logging.error("Unexpected error:" + str(sys.exc_info()[0]))
       raise
 
-  def get_image(self, maxage = MAX_IMAGE_AGE):
+  def get_image_array(self, maxage = MAX_IMAGE_AGE):
     if self._camera is None:
       print "get_image: Default image"
-      return Image(cv2.imread(DEFAULT_IMAGE))
+      return cv2.imread(DEFAULT_IMAGE)
     else:
-      return image.Image(self.out_rgb.array)
+      return self.out_rgb.array
 
-  def save_image(self, image_jpeg):
+  def get_image_binarized(self, maxage = MAX_IMAGE_AGE):
+    data = get_image_array(maxage)    
+    data = cv2.cvtColor(data, cv2.cv.CV_BGR2GRAY)
+    data = cv2.adaptiveThreshold(data, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY_INV, 5, 3)
+    return data
+      
+
+  def jpeg_to_stream(self, image_jpeg):
     self._streamer.set_image(image_jpeg)
     self._image_time=time.time()
 
   def set_text(self, text):
     if self._camera is None:
       return
-    self._camera.annotate_text(str(text))
+    self._camera.annotate_text = str(text)
 
   def get_next_photo_index(self):
     last_photo_index = 0
@@ -218,29 +236,53 @@ class Camera(Thread):
     self.recording = True
     if video_name is None:
       video_index = self.get_next_photo_index()
-      filename = VIDEO_PREFIX + str(video_index) + self._camera.VIDEO_FILE_EXT;
-      filename_thumb = VIDEO_PREFIX + str(video_index) + PHOTO_THUMB_SUFFIX + self._camera.PHOTO_FILE_EXT;
+      filename = VIDEO_PREFIX + str(video_index) + VIDEO_FILE_EXT;
+      filename_thumb = VIDEO_PREFIX + str(video_index) + PHOTO_THUMB_SUFFIX + PHOTO_FILE_EXT;
     else:
-      filename = VIDEO_PREFIX + video_name + self._camera.VIDEO_FILE_EXT;
-      filename_thumb = VIDEO_PREFIX + video_name + PHOTO_THUMB_SUFFIX + self._camera.PHOTO_FILE_EXT;
+      filename = VIDEO_PREFIX + video_name + VIDEO_FILE_EXT;
+      filename_thumb = VIDEO_PREFIX + video_name + PHOTO_THUMB_SUFFIX + PHOTO_FILE_EXT;
       try:
         os.remove(PHOTO_PATH + "/" + filename)
       except:
         pass
 
     oft = open(PHOTO_PATH +  "/" + filename_thumb, "w")
-    im_str = self._camera.get_image_jpeg()
+    im_str = self.out_jpeg.getvalue()
     im_pil = PILImage.open(StringIO(im_str)) 
     im_pil.resize(PHOTO_THUMB_SIZE).save(oft)
     self._photos.append(filename)
-    self._camera.video_rec(PHOTO_PATH + "/" + filename)
+
+    filename = PHOTO_PATH + "/" + filename
+    self.video_filename = filename[:filename.rfind(".")]
+
+    camera_port_2, output_port_2 = self._camera._get_ports(True, 2)
+    self.h264_encoder = self._camera._get_video_encoder(camera_port_2, output_port_2, 'h264', None)
+
+    with self._camera._encoders_lock:
+      self._camera._encoders[2] = self.h264_encoder
+    logging.debug( self.video_filename + VIDEO_FILE_EXT_H264 )
+
+    self.h264_encoder.start(self.video_filename + VIDEO_FILE_EXT_H264)
+
+    #self._camera.video_rec(PHOTO_PATH + "/" + filename)
     self.video_start_time = time.time()
 
   def video_stop(self):
     if self._camera is None:
       return
     if self.recording:
-      self._camera.video_stop()
+      logging.debug("video_stop")
+      self.h264_encoder.stop()
+      
+      with self.camera._encoders_lock:
+        del self.camera._encoders[2]
+      
+      self.h264_encoder.close()
+      # pack in mp4 container
+      params = " -fps 12 -add " + self.video_filename + VIDEO_FILE_EXT_H264 + " " + self.video_filename + VIDEO_FILE_EXT
+      os.system(self.FFMPEG_CMD + params)
+      # remove h264 file
+      os.remove(self.video_filename + VIDEO_FILE_EXT_H264)
       self.recording = False
     
   def get_photo_list(self):
@@ -256,7 +298,7 @@ class Camera(Thread):
     logging.info("delete photo: " + filename)
     os.remove(PHOTO_PATH + "/" + filename)
     if self._camera is not None:
-      os.remove(PHOTO_PATH + "/" + filename[:filename.rfind(".")] + PHOTO_THUMB_SUFFIX + self._camera.PHOTO_FILE_EXT)
+      os.remove(PHOTO_PATH + "/" + filename[:filename.rfind(".")] + PHOTO_THUMB_SUFFIX + PHOTO_FILE_EXT)
     self._photos.remove(filename)
 
   def exit(self):
@@ -266,7 +308,7 @@ class Camera(Thread):
   def calibrate(self):
     if self._camera is None:
       return
-    img = self._camera.getImage()
+    img = self._camera.getImage() # ??
     self._background = img.hueHistogram()[-1]
 
   def set_rotation(self, rotation):
@@ -276,7 +318,7 @@ class Camera(Thread):
   
   def find_line(self):
     self._image_lock.acquire()
-    img = self.get_image(0).binarize()
+    img = self.get_image_binarized(0)
     slices = [0,0,0]
     blobs = [0,0,0]
     slices[0] = img.crop(0, 100, 160, 120)
@@ -292,13 +334,48 @@ class Camera(Thread):
     self._image_lock.release()
     return coords[0]
 
+  def find_template(self, img, template):
+    # initiate sift detector
+    sift = cv2.SIFT()
+    # find the keypoints and descriptors with SIFT
+    kp1, des1 = sift.detectAndCompute(template, None)
+    kp2, des2 = sift.detectAndCompute(img, None)
+    FLANN_INDEX_KDTREE = 0
+    index_params = dict(algorithm = FLAN_INDEX_KDTREE, trees = 5)
+    search_params = dict(checks = 50)
+    flann = cv2.FlannBasedMatcher(index_params, search_params)
+    matches = flan.knnMatch(des1, des2, k=2)
+    # store all the good matches as per Lowe's ratio test
+    good = []
+    templates = []
+    for m,n in matches:
+      if m.distance < 0.7 * n.distance:
+        good.append(m)
+
+    if len(good) > MIN_MATCH_COUNT:
+      src_pts = np.float32([ kp1[m.queryIdx].pt for m in good ]).reshape(-1,1,2)
+      dst_pts = np.float32([ kp2[m.trainIdx].pt for m in good ]).reshape(-1,1,2)
+
+      M, mask = cv2.findHomography(src_pts, dst_pts, cv2.RANSAC, 5.0)
+      matchesMask = mask.ravel().tolist()
+      
+      h,w = template.shape
+      pts = np.float32([ [0,0],[0,h-1],[w-1,h-1],[w-1,0] ]).reshape(-1,1,2)
+      dst = cv2.perspectiveTransform(pts,M)
+      logging.info("found template: " + dst)
+      templates[0] = dst
+    else: 
+      logging.info("Not enough matches are found - %d/%d" % (len(good),MIN_MATCH_COUNT))
+      matchesMask = None
+    return templates
+
   def find_signal(self):
     #print "signal"
     angle = None
     ts = time.time()
     self._image_lock.acquire()
-    img = self.get_image(0)
-    signals = img.find_template(self._img_template)
+    img = self.get_image_array(0)
+    signals = self.find_template(img, self._img_template)
      
     logging.info("signal: " + str(time.time() - ts))
     if len(signals):
@@ -311,9 +388,10 @@ class Camera(Thread):
   def find_face(self):
     faceX = faceY = faceS = None
     self._image_lock.acquire()
-    img = self.get_image(0)
+    img = self.get_image_array(0)
     ts = time.time()
-    faces = img.grayscale().find_faces()
+    img = cv2.cvtColor(img, cv2.cv.CV_BGR2GRAY)
+    faces = self._face_cascade.detectMultiScale(img)
     print "face.detect: " + str(time.time() - ts)
     self._image_lock.release()
     print faces
@@ -321,6 +399,7 @@ class Camera(Thread):
       # Get the largest face, face is a rectangle 
       x, y, w, h = faces[0]
       centerX = x + (w/2)
+      # ASSUMING RGB 160X120 RESOLUTION!
       faceX = ((centerX * 100) / 160) - 50 #center = 0
       centerY = y + (h/2)
       faceY = 50 - (centerY * 100) / 120 #center = 0 
@@ -328,11 +407,26 @@ class Camera(Thread):
       faceS = (size * 100) / 120
     return [faceX, faceY, faceS]
 
+  def find_blobs(self, img, minsize=0, maxsize=1000000):
+    blobs = []
+    contours, hierarchy = cv2.findContours(img, cv2.cv.CV_RETR_TREE, cv2.cv.CV_CHAIN_APPROX_SIMPLE)
+    for c in contours:
+      area = cv2.contourArea(c)
+      if area > minsize and area < maxsize:
+        if len(blobs) and area > blobs[0].area:
+          blobs.insert(0, blob.Blob(c))
+        else:
+          blobs.append(blob.Blob(c))
+
+    return blobs
+  
   def path_ahead(self):
     #print "path ahead"
     ts = time.time()
     self._image_lock.acquire()
-    img = self.get_image(0)
+    img = self.get_image_array(0)
+    img_binarized = self.get_image_binarized(0)
+    blobs = self.find_blobs(img=img_binarized, minsize=100, maxsize=8000)
     #print "path_ahead.get_image: " + str(time.time() - ts)
     #img.crop(0, 100, 160, 120)
 
@@ -349,7 +443,7 @@ class Camera(Thread):
     #control_hue = control_hue - 10
     #binarized = color_distance.binarize(control_hue).invert()
     #print "path_ahead.binarize: " + str(time.time() - ts)
-    blobs = img.binarize().find_blobs(minsize=100, maxsize=8000)
+    #blobs = img.binarize().find_blobs(minsize=100, maxsize=8000)
     #print "path_ahead.blobs: " + str(time.time() - ts)
     coordY = 60
     if len(blobs):
@@ -362,8 +456,11 @@ class Camera(Thread):
       #dw_x = 260 + obstacle.coordinates()[0] - (obstacle.width()/2)
       #dw_y = 160 + obstacle.coordinates()[1] - (obstacle.height()/2) 
       #img.drawRectangle(dw_x, dw_y, obstacle.width(), obstacle.height(), color=(255,0,0))
-      x, y = img.transform((obstacle.center[0], obstacle.bottom))
-      coordY = 60 - ((y * 48) / 100) 
+      
+      # TRANSFORM ASSUMES RGB 160X120 RESOLUTION! 
+      #x, y = img.transform((obstacle.center[0], obstacle.bottom))
+      #coordY = 60 - ((y * 48) / 100) 
+      coordY = 60 - ((obstacle.center[1] * 48) / 100)
       logging.info("coordY: " + str(coordY))
       #print obstacle.coordinates()[1]+(obstacle.height()/2)
       #ar_layer.centeredRectangle(obstacle.coordinates(), (obstacle.width(), obstacle.height()))
@@ -384,19 +481,28 @@ class Camera(Thread):
     code_data = None
     ts = time.time()
     self._image_lock.acquire()
-    img = self.get_image(0)
+    img = self.get_image_array(0)
     self._image_lock.release()
-    if img is None:
-      print "Image from get_image is None!"
-      return [0,0]
-    bw = img.filter_color(color)
-    contours, hierarchy = bw.find_contours()
+    #bw = img.filter_color(color)
+    h, s, v = colorsys.rgb_to_hsv(color[0]/255.0, color[1]/255.0, color[2]/255.0)
+    img_hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+    h = h * 180
+    s = s * 255
+    v = v * 255
+    logging.debug("color_hsv: " + str(h) + " " + str(s) + " " + str(v))
+    lower_color = np.array([h-10, 50, 50])
+    upper_color = np.array([h+10, 255, 255])
+    logging.debug("lower: " + str(lower_color) + " upper: " + str(upper_color))
+    bw = cv2.inRange(img_hsv, lower_color, upper_color)
+    #contours, hierarchy = bw.find_contours()
+    contours, hierarchy = cv2.findContours(bw, cv2.cv.CV_RETR_TREE, cv2.cv.CV_CHAIN_APPROX_SIMPLE)
     for contour in contours:
-      img.draw_contour_bound_circle(contour)
+      (x,y),radius = cv2.minEnclosingCircle(contour) 
+      center = (int(x), int(y))
+      radius = int(radius)
+      cv2.circle(img, center, radius, (0,255,0), 2)
     self._image_cache = img
     self._image_cache_updated = True
-    if self._image_cache is None:
-      print "Image cache is None!"
     #self.save_image(bw.to_jpeg())
     #objects = bw.find_blobs(minsize=5, maxsize=100)
     #logging.debug("objects: " + str(objects))
