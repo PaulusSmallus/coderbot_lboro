@@ -129,6 +129,7 @@ class Program:
       logging.info("quit: " + str(re))
     finally:
       get_cam().video_stop() #if video is running, stop it
+      get_cam().set_text(' ')
       get_motion().stop()
       self._running = False
 

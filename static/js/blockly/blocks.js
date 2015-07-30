@@ -706,7 +706,7 @@ Blockly.Blocks['coderbot_adv_findColor'] = {
     this.setColour(290);
     this.appendDummyInput()
         .appendField(Blockly.Msg.CODERBOT_SENSOR_FINDCOLOR_FIND)
-        .appendField(new Blockly.FieldDropdown([[Blockly.Msg.CODERBOT_SENSOR_FINDCOLOR_DIST, 'DIST'], [Blockly.Msg.CODERBOT_SENSOR_FINDCOLOR_ANGLE, 'ANGLE'],[Blockly.Msg.CODERBOT_SENSOR_FINDCOLOR_BOTH,'BOTH']]), 'RETVAL')
+        .appendField(new Blockly.FieldDropdown([[Blockly.Msg.CODERBOT_SENSOR_FINDCOLOR_X, 'X'], [Blockly.Msg.CODERBOT_SENSOR_FINDCOLOR_Y, 'Y'],[Blockly.Msg.CODERBOT_SENSOR_FINDCOLOR_DIAMETER,'DIAMETER'],[Blockly.Msg.CODERBOT_SENSOR_FINDCOLOR_ALL,'ALL']]), 'RETVAL')
         .appendField(Blockly.Msg.CODERBOT_SENSOR_FINDCOLOR_COLOR);
     this.appendValueInput('COLOR')
         .setCheck('Colour');
@@ -720,7 +720,7 @@ Blockly.JavaScript['coderbot_adv_findColor'] = function(block) {
   // Boolean values true and false.
   var color = Blockly.Python.valueToCode(block, 'COLOR', Blockly.Python.ORDER_NONE);
   var retval = block.getFieldValue('RETVAL');
-  var ret_code = {'DIST': '[0]', 'ANGLE': '[1]', 'BOTH': ''}[retval];
+  var ret_code = {'X': '[0]', 'Y': '[1]', 'DIAMETER': '[2]', 'ALL': ''}[retval];
   var code = 'get_cam().find_color(' + color + ')' + ret_code + ';';
   return [code, Blockly.Python.ORDER_ATOMIC];
 };
@@ -729,7 +729,7 @@ Blockly.Python['coderbot_adv_findColor'] = function(block) {
   // Boolean values true and false.
   var color = Blockly.Python.valueToCode(block, 'COLOR', Blockly.Python.ORDER_NONE);
   var retval = block.getFieldValue('RETVAL');
-  var ret_code = {'DIST': '[0]', 'ANGLE': '[1]', 'BOTH': ''}[retval];
+  var ret_code = {'X': '[0]', 'Y': '[1]', 'DIAMETER': '[2]', 'ALL': ''}[retval];
   var code = 'get_cam().find_color(' + color + ')' + ret_code;
   return [code, Blockly.Python.ORDER_ATOMIC];
 };
@@ -947,3 +947,4 @@ Blockly.Python['led_off'] = function(block) {
   var code =  "get_bot().LED_off_indef(Colour=\"" + dropdown_colour + "\"" + ")\n";
   return code;
 };
+
