@@ -18,7 +18,7 @@ import cv2
 import colorsys
 import numpy as np
 
-CAMERA_REFRESH_INTERVAL=0.1
+CAMERA_REFRESH_INTERVAL=0.01
 MAX_IMAGE_AGE = 0.0
 PHOTO_PATH = "./photos"
 DEFAULT_IMAGE = "./photos/broken.jpg"
@@ -494,15 +494,21 @@ class Camera(Thread):
     upper_color = np.array([h+10, 255, 255])
     logging.debug("lower: " + str(lower_color) + " upper: " + str(upper_color))
     bw = cv2.inRange(img_hsv, lower_color, upper_color)
-    #contours, hierarchy = bw.find_contours()
-    contours, hierarchy = cv2.findContours(bw, cv2.cv.CV_RETR_TREE, cv2.cv.CV_CHAIN_APPROX_SIMPLE)
-    for contour in contours:
-      (x,y),radius = cv2.minEnclosingCircle(contour) 
+    # get unordered list of contours in filtered image
+    contours, _ = cv2.findContours(bw, cv2.cv.CV_RETR_LIST, cv2.cv.CV_CHAIN_APPROX_SIMPLE)
+    center = (0,0)
+    radius = 0
+    if not contours is None and len(contours) > 0:
+      # get the contour with the largest area
+      largest = sorted(contours, key = cv2.contourArea, reverse=True)[0]
+      (x,y),radius = cv2.minEnclosingCircle(largest) 
       center = (int(x), int(y))
       radius = int(radius)
+      # draw a circle around the largest
       cv2.circle(img, center, radius, (0,255,0), 2)
-    self._image_cache = img
-    self._image_cache_updated = True
+      # copy to image cache for jpegging and streaming [see run()]
+      self._image_cache = img
+      self._image_cache_updated = True
     #self.save_image(bw.to_jpeg())
     #objects = bw.find_blobs(minsize=5, maxsize=100)
     #logging.debug("objects: " + str(objects))
@@ -523,7 +529,7 @@ class Camera(Thread):
     #self.save_image(img.to_jpeg())
     #print "object: " + str(time.time() - ts)
     #return [dist, angle]
-    return [0,0]
+    return [center[0],center[1],radius*2]
       
     
   def sleep(self, elapse):
