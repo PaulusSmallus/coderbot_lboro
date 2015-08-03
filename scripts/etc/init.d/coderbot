@@ -18,7 +18,7 @@ DAEMON_NAME=coderbot
 # Put your command-line options here
 DAEMON_OPTS=""
 
-DAEMON_USER=pi
+DAEMON_USER=root
 
 # The process ID of the script when it runs is stored here
 PIDFILE=/var/run/$DAEMON_NAME.pid
