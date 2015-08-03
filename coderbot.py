@@ -11,8 +11,11 @@ PIN_PUSHBUTTON = 18
 PIN_SERVO_3 = 9 # ARM PIN
 PIN_SERVO_4 = 10
 LED_RED = 21
-LED_YELLOW = 20
-LED_GREEN = 16
+LED_YELLOW = 16
+LED_GREEN = 20
+
+LEFT_OFFSET = 0
+RIGHT_OFFSET = 0
 
 PWM_FREQUENCY = 50 #Hz
 PWM_RANGE = 2000 #100-200 duty cycle operating range for servos
@@ -51,10 +54,10 @@ class CoderBot:
     return cls.the_bot
 
   def move(self, speed=100, elapse=-1):
-    self.motor_control(speed_left=speed, speed_right=speed, elapse=elapse)
+    self.motor_control(speed_left=speed + LEFT_OFFSET, speed_right=speed + RIGHT_OFFSET, elapse=elapse)
 
   def turn(self, speed=100, elapse=-1):
-    self.motor_control(speed_left=speed, speed_right=-speed, elapse=elapse)
+    self.motor_control(speed_left=speed  + LEFT_OFFSET, speed_right=-speed + RIGHT_OFFSET, elapse=elapse)
 
   def forward(self, speed=100, elapse=-1):
     self.move(speed=speed, elapse=elapse)
