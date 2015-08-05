@@ -185,29 +185,29 @@ class CoderBot:
 
   def LED_on(self, Colour, seconds, pin=0):
     if Colour == "Red LED":
-      pin = 21
+      pin = LED_RED
     elif Colour == "Green LED":
-      pin = 16
+      pin = LED_GREEN
     elif Colour == "Yellow LED":
-      pin = 20
+      pin = LED_YELLOW
     self.pi.write(pin, 1)
     time.sleep(seconds)
     self.pi.write(pin, 0)
 
   def LED_on_indef(self, Colour, pin=0):
     if Colour == "Red LED":
-      pin = 21
+      pin = LED_RED
     elif Colour == "Green LED":
-      pin = 16
+      pin = LED_GREEN
     elif Colour == "Yellow LED":
-      pin = 20
+      pin = LED_YELLOW
     self.pi.write(pin, 1)
 
   def LED_off_indef(self, Colour, pin=0):
     if Colour == "Red LED":
-      pin = 21
+      pin = LED_RED
     elif Colour == "Green LED":
-      pin = 16
+      pin = LED_GREEN
     elif Colour == "Yellow LED":
-      pin = 20
+      pin = LED_YELLOW
     self.pi.write(pin, 0)  
