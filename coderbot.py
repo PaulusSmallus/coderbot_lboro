@@ -14,11 +14,10 @@ LED_RED = 21
 LED_YELLOW = 16
 LED_GREEN = 20
 
-LEFT_OFFSET = 0
-RIGHT_OFFSET = 0
-
 PWM_FREQUENCY = 50 #Hz
-PWM_RANGE = 2000 #100-200 duty cycle operating range for servos
+PWM_UPPER = 1700 # 1.7ms for full clockwise
+PWM_LOWER = 1300 # 1.3ms for full anti-clockwise
+
 
 def coderbot_callback(gpio, level, tick):
   return CoderBot.get_instance().callback(gpio, level, tick)
@@ -40,7 +39,6 @@ class CoderBot:
     cb1 = self.pi.callback(PIN_PUSHBUTTON, pigpio.EITHER_EDGE, coderbot_callback)
     for pin in self._pin_out:
       self.pi.set_PWM_frequency(pin, PWM_FREQUENCY)
-      self.pi.set_PWM_range(pin, PWM_RANGE)
 
     self.stop()
     self._is_moving = False
@@ -54,10 +52,10 @@ class CoderBot:
     return cls.the_bot
 
   def move(self, speed=100, elapse=-1):
-    self.motor_control(speed_left=speed + LEFT_OFFSET, speed_right=speed + RIGHT_OFFSET, elapse=elapse)
+    self.motor_control(speed_left=speed, speed_right=speed, elapse=elapse)
 
   def turn(self, speed=100, elapse=-1):
-    self.motor_control(speed_left=speed  + LEFT_OFFSET, speed_right=-speed + RIGHT_OFFSET, elapse=elapse)
+    self.motor_control(speed_left=speed, speed_right=-speed, elapse=elapse)
 
   def forward(self, speed=100, elapse=-1):
     self.move(speed=speed, elapse=elapse)
@@ -119,14 +117,13 @@ class CoderBot:
   def _servo_motor_control(self, pin, speed):
     self._is_moving = True
 
-    # transform speed value from -100 to +100 range
-    # to servo duty cycle range: 100 to 200
-    speed = 150 + speed/2
-    if speed < 90: speed = 90
-    if speed > 210: speed = 210
-    self.pi.set_PWM_range(pin, PWM_RANGE)
-    self.pi.set_PWM_frequency(pin, PWM_FREQUENCY)
-    self.pi.set_PWM_dutycycle(pin, speed)
+    #clamp between -100 and 100
+    speed = self.clamp(speed,-100,100)
+
+    #calculate pwn value between the range of UPPER_PWM and LOWER_PWM
+    half_range = ((PWM_UPPER - PWM_LOWER) / 2)
+    pwm_out = PWM_LOWER + half_range + ((speed / 100.0) * half_range)
+    self.pi.set_servo_pulsewidth(pin, pwm_out)
 
   def _servo_control(self, pin, angle):
 
@@ -144,6 +141,12 @@ class CoderBot:
       self.pi.write(pin, 0)
     self._is_moving = False
 
+  def clamp(self,x,lower,upper):
+    if x < lower:
+      x = lower
+    if x > upper:
+      x = upper
+    return x
 
   def is_moving(self):
     return self._is_moving
