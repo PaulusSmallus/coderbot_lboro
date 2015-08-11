@@ -109,6 +109,10 @@ def handle_bot():
     elif cmd == "reboot":
         logging.info("rebooting")
         bot.reboot()
+    elif cmd == "armup":
+        bot.arm_up()
+    elif cmd == "armdown":
+        bot.arm_down()
 
     return "ok"
 

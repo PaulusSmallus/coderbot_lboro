@@ -59,12 +59,12 @@ CoderBot.prototype.takePhoto = function() {
 	this.command('take_photo', 0);
 }
 
-CoderBot.prototype.videoRec = function() {
-	this.command('video_rec', 0);
+CoderBot.prototype.armDown = function() {
+	this.command('armdown', 0);
 }
 
-CoderBot.prototype.videoStop = function() {
-	this.command('video_stop', 0);
+CoderBot.prototype.armUp = function() {
+	this.command('armup', 0);
 }
 
 CoderBot.prototype.say = function(h) {

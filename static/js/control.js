@@ -82,10 +82,10 @@ $(document).on( "pagecreate", '#page-control', function( event ) {
 		bot.rotateCamera();
 	});
 	$('#b_video_rec').on("click", function (){
-                bot.videoRec();
+                bot.armDown();
 	});
 	$('#b_video_stop').on("click", function (){
-                bot.videoStop();
+                bot.armUp();
 	});
 	$('#b_photos').on("click", function (){
         	$.mobile.pageContainer.pagecontainer('change', '#page-photos');
