@@ -70,7 +70,17 @@ class CoderBot:
     self.turn(speed=speed, elapse=elapse)
 
   def servo3(self, angle):
-    self._servo_control(PIN_SERVO_3, angle)
+    #self._servo_control(PIN_SERVO_3, angle)
+    angle = self.clamp(angle,0,100)
+    pwm = PWM_LOWER + ((angle/100)*(PWM_UPPER - PWM_LOWER))
+    self.pi.set_servo_pulsewidth(PIN_SERVO_3,pwm)
+
+  def arm_up(self):
+    self.servo3(120)
+    
+  def arm_down(self):
+    self.servo3(60)
+                       
 
   def servo4(self, angle):
     self._servo_control(PIN_SERVO_4, angle)
