@@ -1,0 +1,157 @@
+  <xml id="toolbox" style="display: none">
+    <category name="{% trans %}Movement{% endtrans %}">
+      <block type="coderbot_moveForward"></block>
+      <block type="coderbot_moveBackward"></block>
+      <block type="coderbot_turnLeft"></block>
+      <block type="coderbot_turnRight"></block>
+      <block type="coderbot_motion_move">
+        <value name="DIST">
+          <block type="math_number">
+            <field name="NUM">10</field>
+          </block>
+        </value>
+      </block>
+      <block type="coderbot_motion_turn">
+        <value name="ANGLE">
+          <block type="math_number">
+            <field name="NUM">90</field>
+          </block>
+        </value>
+      </block>
+      <block type="coderbot_adv_move">
+        <value name="SPEED">
+          <block type="math_number">
+            <field name="NUM">100</field>
+          </block>
+        </value>
+        <value name="ELAPSE">
+          <block type="math_number">
+            <field name="NUM">0.2</field>
+          </block>
+        </value>
+      </block>
+      <block type="coderbot_adv_motor">
+        <value name="SPEED_LEFT">
+          <block type="math_number">
+            <field name="NUM">100</field>
+          </block>
+        </value>
+        <value name="SPEED_RIGHT">
+          <block type="math_number">
+            <field name="NUM">100</field>
+          </block>
+        </value>
+        <value name="ELAPSE">
+          <block type="math_number">
+            <field name="NUM">1.0</field>
+          </block>
+        </value>
+      </block>
+      <block type="coderbot_adv_stop"></block>
+      <block type="coderbot_sleep">
+        <value name="ELAPSE">
+          <block type="math_number">
+            <field name="NUM">1.0</field>
+          </block>
+        </value>
+      </block>
+    </category>
+    <category name ="{% trans %}Arm{% endtrans %}">
+      <block type="coderbot_armRaise"></block>
+      <block type="coderbot_armLower"></block>
+    </category> 
+    <category name="{% trans %}LED{% endtrans %}">
+      <block type="turn_led_on">
+        <value name="seconds">
+          <block type="math_number">
+            <field name="NUM">3</field>
+          </block>
+        </value>
+      </block>
+      <block type="led_on"></block>
+      <block type="led_off"></block> 
+    </category>
+    <category name="{% trans %}Sections{% endtrans %}" custom="PROCEDURE"></category>
+    <category name="{% trans %}Advanced - Logic{% endtrans %}">
+      <block type="controls_if"></block>
+      <block type="logic_compare"></block>
+      <block type="logic_operation"></block>
+      <block type="logic_negate"></block>
+      <block type="logic_boolean"></block>
+      <block type="logic_null"></block>
+      <block type="logic_ternary"></block>
+    </category>
+    <category name="{% trans %}Advanced - Loops{% endtrans %}">
+      <block type="controls_repeat_ext">
+        <value name="TIMES">
+          <block type="math_number">
+            <field name="NUM">10</field>
+          </block>
+        </value>
+      </block>
+      <block type="controls_whileUntil"></block>
+      <block type="controls_for">
+        <value name="FROM">
+          <block type="math_number">
+            <field name="NUM">1</field>
+          </block>
+        </value>
+        <value name="TO">
+          <block type="math_number">
+            <field name="NUM">10</field>
+          </block>
+        </value>
+        <value name="BY">
+          <block type="math_number">
+            <field name="NUM">1</field>
+          </block>
+        </value>
+      </block>
+      <block type="controls_forEach"></block>
+      <block type="controls_flow_statements"></block>
+    </category>
+    <category name="{% trans %}Advanced - Math{% endtrans %}">
+      <block type="math_number"></block>
+      <block type="math_arithmetic"></block>
+      <block type="math_single"></block>
+      <block type="math_trig"></block>
+      <block type="math_constant"></block>
+      <block type="math_number_property"></block>
+      <block type="math_change">
+        <value name="DELTA">
+          <block type="math_number">
+            <field name="NUM">1</field>
+          </block>
+        </value>
+      </block>
+      <block type="math_round"></block>
+      <block type="math_on_list"></block>
+      <block type="math_modulo"></block>
+      <block type="math_constrain">
+        <value name="LOW">
+          <block type="math_number">
+            <field name="NUM">1</field>
+          </block>
+        </value>
+        <value name="HIGH">
+          <block type="math_number">
+            <field name="NUM">100</field>
+          </block>
+        </value>
+      </block>
+      <block type="math_random_int">
+        <value name="FROM">
+          <block type="math_number">
+            <field name="NUM">1</field>
+          </block>
+        </value>
+        <value name="TO">
+          <block type="math_number">
+            <field name="NUM">100</field>
+          </block>
+        </value>
+      </block>
+      <block type="math_random_float"></block>
+    </category>
+
+  </xml>

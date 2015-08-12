@@ -51,7 +51,11 @@
       <input type="radio" name="prog_level" id="r_prog_level_c" value="std" {%if config.prog_level=='std'%}checked="checked"{%endif%}>
       <label for="r_prog_level_c">{% trans %}Standard{% endtrans %}</label> 
       <input type="radio" name="prog_level" id="r_prog_level_d" value="adv" {%if config.prog_level=='adv'%}checked="checked"{%endif%}>
-      <label for="r_prog_level_d">{% trans %}Advanced{% endtrans %}</label>     
+      <label for="r_prog_level_d">{% trans %}Advanced{% endtrans %}</label>
+      <input type="radio" name="prog_level" id="r_prog_level_e" value="Picasso" {%if config.prog_level=='Picasso'%}checked="checked"{%endif%}>
+      <label for="r_prog_level_e">{% trans %}Picasso{% endtrans %}</label>       
+      <input type="radio" name="prog_level" id="r_prog_level_f" value="Pioneer" {%if config.prog_level=='Pioneer'%}checked="checked"{%endif%}>
+      <label for="r_prog_level_f">{% trans %}Pioneer{% endtrans %}</label>
      </fieldset>
      <fieldset data-role="controlgroup" data-mini="true">
       <legend>{% trans %}Program editor details{% endtrans %}</legend>
