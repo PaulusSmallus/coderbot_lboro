@@ -26,7 +26,9 @@ def coderbot_callback(gpio, level, tick):
 class CoderBot:
   _pin_out = [PIN_MOTOR_ENABLE, PIN_LEFT_FORWARD, PIN_RIGHT_FORWARD, PIN_LEFT_BACKWARD, PIN_RIGHT_BACKWARD, PIN_SERVO_3, PIN_SERVO_4]
 
+
   def __init__(self, servo=False):
+    self.check_end = None
     self.pi = pigpio.pi('localhost')
     self.pi.set_mode(PIN_PUSHBUTTON, pigpio.INPUT)
     self._cb = dict()
@@ -50,10 +52,14 @@ class CoderBot:
   the_bot = None
 
   @classmethod
-  def get_instance(cls, servo=False):
+  def get_instance(cls, servo = False):
     if not cls.the_bot:
       cls.the_bot = CoderBot(servo)
     return cls.the_bot
+
+  #add a method to be called periodically while waiting
+  def setCheckEndMethod(self,check_end):
+    self.check_end = check_end
 
   def move(self, speed=100, elapse=-1):
     self.motor_control(speed_left=speed, speed_right=speed, elapse=elapse)
@@ -71,7 +77,7 @@ class CoderBot:
     self.turn(speed=-speed, elapse=elapse)
 
   def right(self, speed=100, elapse=-1):
-    self.turn(speed=speed, elapse=elapse)
+    self.turn(speed=speed, elapse=elapse) 
 
   def servo3(self, angle):
     #self._servo_control(PIN_SERVO_3, angle)
@@ -110,7 +116,7 @@ class CoderBot:
 
     self.pi.write(PIN_MOTOR_ENABLE, 1)
     if elapse > 0:
-      time.sleep(elapse)
+      self.sleep(elapse)
       self.stop()
 
   def _servo_motor(self, speed_left=100, speed_right=100, elapse=-1):
@@ -124,7 +130,7 @@ class CoderBot:
     self._servo_motor_control(PIN_LEFT_FORWARD, speed_left)
     self._servo_motor_control(PIN_RIGHT_FORWARD, speed_right)
     if elapse > 0:
-      time.sleep(elapse)
+      self.sleep(elapse)
       self.stop()
 
 
@@ -162,6 +168,14 @@ class CoderBot:
     if x > upper:
       x = upper
     return x
+
+  def sleep(self, elapse):
+    for i in range(int(elapse / 0.1)):
+      time.sleep(0.1)
+      if self.check_end != None:
+        self.check_end()
+          
+    time.sleep(elapse % 0.1)
 
   def is_moving(self):
     return self._is_moving

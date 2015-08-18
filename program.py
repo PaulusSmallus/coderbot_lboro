@@ -13,6 +13,7 @@ PROGRAM_PATH = "./data/"
 PROGRAM_PREFIX = "program_"
 PROGRAM_SUFFIX = ".data"
 
+
 def get_cam():
   return camera.Camera.get_instance()
 
@@ -118,18 +119,19 @@ class Program:
     try:
       #print "run.1"
       bot = coderbot.CoderBot.get_instance()
+      bot.setCheckEndMethod(self.check_end) 
       cam = camera.Camera.get_instance()
       program = self
       if config.Config.get().get("prog_video_rec") == "true":
         get_cam().video_rec(program.name)
         logging.debug("starting video")
       exec(self._code)
-      #print "run.2"
     except RuntimeError as re:
       logging.info("quit: " + str(re))
     finally:
       get_cam().video_stop() #if video is running, stop it
       get_cam().set_text(' ')
+      #get_cam._streamer.end_stream()
       get_motion().stop()
       self._running = False
 
