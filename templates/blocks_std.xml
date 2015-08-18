@@ -86,6 +86,13 @@
         </value>
       </block>
       <block type="led_on"></block>
-      <block type="led_off"></block> 
+      <block type="led_off"></block>
+      <block type="rgb_blend">
+        <value name="COLOR">
+          <block type="colour_picker">
+          </block>
+        </value>
+      </block>
+      <block type="all_off"></block> 
     </category>        
   </xml>

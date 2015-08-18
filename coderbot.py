@@ -11,12 +11,13 @@ PIN_PUSHBUTTON = 18
 PIN_SERVO_3 = 9 # ARM PIN
 PIN_SERVO_4 = 10
 LED_RED = 21
-LED_YELLOW = 16
+LED_BLUE = 16
 LED_GREEN = 20
 
 PWM_FREQUENCY = 50 #Hz
 PWM_UPPER = 1700 # 1.7ms for full clockwise
 PWM_LOWER = 1300 # 1.3ms for full anti-clockwise
+LEDPinFreq =100
 
 
 def coderbot_callback(gpio, level, tick):
@@ -40,6 +41,9 @@ class CoderBot:
     for pin in self._pin_out:
       self.pi.set_PWM_frequency(pin, PWM_FREQUENCY)
 
+    self.pi.set_PWM_frequency(LED_RED, LEDPinFreq)
+    self.pi.set_PWM_frequency(LED_GREEN, LEDPinFreq)
+    self.pi.set_PWM_frequency(LED_BLUE, LEDPinFreq)
     self.stop()
     self._is_moving = False
  
@@ -199,8 +203,8 @@ class CoderBot:
       pin = LED_RED
     elif Colour == "Green LED":
       pin = LED_GREEN
-    elif Colour == "Yellow LED":
-      pin = LED_YELLOW
+    elif Colour == "Blue LED":
+      pin = LED_BLUE
     self.pi.write(pin, 1)
     time.sleep(seconds)
     self.pi.write(pin, 0)
@@ -210,8 +214,8 @@ class CoderBot:
       pin = LED_RED
     elif Colour == "Green LED":
       pin = LED_GREEN
-    elif Colour == "Yellow LED":
-      pin = LED_YELLOW
+    elif Colour == "Blue LED":
+      pin = LED_BLUE
     self.pi.write(pin, 1)
 
   def LED_off_indef(self, Colour, pin=0):
@@ -219,6 +223,19 @@ class CoderBot:
       pin = LED_RED
     elif Colour == "Green LED":
       pin = LED_GREEN
-    elif Colour == "Yellow LED":
-      pin = LED_YELLOW
+    elif Colour == "Blue LED":
+      pin = LED_BLUE
     self.pi.write(pin, 0)  
+
+  def RGB_Blend(self, s_color):
+    colorR = int(s_color[1:3],16)
+    colorG = int(s_color[3:5],16)
+    colorB = int(s_color[5:7],16)
+    self.pi.set_PWM_dutycycle(LED_RED, colorR)
+    self.pi.set_PWM_dutycycle(LED_GREEN, colorG)
+    self.pi.set_PWM_dutycycle(LED_BLUE, colorB)
+
+  def alloff(self):
+    self.pi.write(LED_GREEN, 0)
+    self.pi.write(LED_RED, 0)
+    self.pi.write(LED_BLUE, 0)      

@@ -866,7 +866,7 @@ Blockly.Blocks['turn_led_on'] = {
     this.appendValueInput("seconds")
       .setCheck("Number")
       .appendField("Turn the ")
-      .appendField(new Blockly.FieldDropdown([["red", "Red LED"], ["green", "Green LED"], ["yellow", "Yellow LED"]]), "Colour")
+      .appendField(new Blockly.FieldDropdown([["red", "Red LED"], ["green", "Green LED"], ["blue", "Blue LED"]]), "Colour")
       .appendField("LED on for ");
     this.appendDummyInput()
       .appendField("seconds");
@@ -898,7 +898,7 @@ Blockly.Blocks['led_on'] = {
   init: function() {
     this.appendDummyInput()
       .appendField("Turn the ")
-      .appendField(new Blockly.FieldDropdown([["red", "Red LED"], ["green", "Green LED"], ["yellow", "Yellow LED"]]), "Colour")
+      .appendField(new Blockly.FieldDropdown([["red", "Red LED"], ["green", "Green LED"], ["blue", "Blue LED"]]), "Colour")
       .appendField("LED on");
     this.setHelpUrl(Blockly.Msg.CODERBOT_LED_ON);
     this.setColour(355);
@@ -925,7 +925,7 @@ Blockly.Blocks['led_off'] = {
   init: function() {
     this.appendDummyInput()
       .appendField("Turn the ")
-      .appendField(new Blockly.FieldDropdown([["red", "Red LED"], ["green", "Green LED"], ["yellow", "Yellow LED"]]), "Colour")
+      .appendField(new Blockly.FieldDropdown([["red", "Red LED"], ["green", "Green LED"], ["blue", "Blue LED"]]), "Colour")
       .appendField("LED off");
     this.setHelpUrl(Blockly.Msg.CODERBOT_LED_OFF);
     this.setColour(355);
@@ -948,3 +948,60 @@ Blockly.Python['led_off'] = function(block) {
   return code;
 };
 
+Blockly.Blocks['rgb_blend'] = {
+  /**
+   * Block for findSignal function.
+   * @this Blockly.Block
+   */
+  init: function() {
+    this.appendValueInput("COLOR")
+      .setCheck('Colour')
+      .appendField("Turn the LED on with the specific colour ");
+    this.setInputsInline(true);
+    this.setPreviousStatement(true, null);
+    this.setNextStatement(true, null);
+    this.setHelpUrl(Blockly.Msg.CODERBOT_LED_BLEND);
+    this.setColour(355);
+  } 
+};
+
+
+Blockly.JavaScript['rgb_blend'] = function(block) {
+  // Generate JavaScrip code for LED lights
+  var color = Blockly.Javascript.valueToCode(block, 'COLOR', Blockly.Javascript.ORDER_ATOMIC);
+  var code =  "get_bot().RGB_Blend(s_color=" + s_color +  ")\n";
+  return code
+};
+
+Blockly.Python['rgb_blend'] = function(block) {
+  // Generate Python code for LED lights
+  var s_color = Blockly.Python.valueToCode(block, 'COLOR', Blockly.Python.ORDER_ATOMIC);
+  var code =  "get_bot().RGB_Blend(s_color=" + s_color +  ")\n";
+  return code
+};
+
+Blockly.Blocks['all_off'] = {
+  /** 
+     * Block for armLower function.
+     * @this Blockly.Block
+     */
+  init: function() {
+    this.appendDummyInput()
+      .appendField("Turn all LEDs off");
+    this.setPreviousStatement(true, null);
+    this.setNextStatement(true, null);
+    this.setTooltip('Coderbot_alloffTooltip');
+    this.setHelpUrl(Blockly.Msg.CODERBOT_ALL_OFF_HELPURL);
+    this.setColour(355);
+  } 
+};
+
+Blockly.JavaScript['all_off'] = function(block) {
+  // Generate JavaScript code for lowering the arm
+  return 'get_bot().alloff();\n';
+};
+
+Blockly.Python['all_off'] = function(block) {
+  // Generate Python code for lowering the arm
+  return 'get_bot().alloff()\n';
+};
