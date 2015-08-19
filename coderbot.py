@@ -86,10 +86,10 @@ class CoderBot:
     self.pi.set_servo_pulsewidth(PIN_SERVO_3,pwm)
 
   def arm_up(self):
-    self.servo3(120)
+    self.servo3(0)
     
   def arm_down(self):
-    self.servo3(0)
+    self.servo3(120)
                        
 
   def servo4(self, angle):

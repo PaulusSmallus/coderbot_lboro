@@ -783,12 +783,12 @@ Blockly.Blocks['coderbot_armRaise'] = {
 
 Blockly.JavaScript['coderbot_armRaise'] = function(block) {
   // Generate JavaScript for raising the arm
-  return 'get_bot().servo3(' + CODERBOT_ARM_ANGLE_RAISED + ');\n';
+  return 'get_bot().arm_up();\n';
 };
 
 Blockly.Python['coderbot_armRaise'] = function(block) {
   // Generate Python code for raising the arm
-  return 'get_bot().servo3(' + CODERBOT_ARM_ANGLE_RAISED + ')\n';
+  return 'get_bot().arm_up()\n';
 };
 
 Blockly.Blocks['coderbot_armLower'] = {
@@ -813,12 +813,12 @@ Blockly.Blocks['coderbot_armLower'] = {
 
 Blockly.JavaScript['coderbot_armLower'] = function(block) {
   // Generate JavaScript code for lowering the arm
-  return 'get_bot().servo3(' + CODERBOT_ARM_ANGLE_LOWERED + ');\n';
+  return 'get_bot().arm_down();\n';
 };
 
 Blockly.Python['coderbot_armLower'] = function(block) {
   // Generate Python code for lowering the arm
-  return 'get_bot().servo3(' + CODERBOT_ARM_ANGLE_LOWERED + ')\n';
+  return 'get_bot().arm_down()\n';
 };
 
 
