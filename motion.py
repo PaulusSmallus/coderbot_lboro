@@ -20,10 +20,18 @@ feature_params = dict( maxCorners = 500,
                        blockSize = 7 )
 
 
-PI_CAM_FOV_H_DEG = 53.0
+#PI_CAM_FOV_H_DEG = 53.0
+#PI_CAM_FOV_V_CM = 100.0
+PI_CAM_FOV_H_DEG = 100.0
 PI_CAM_FOV_V_CM = 100.0
-IMAGE_WIDTH = 160.0
-IMAGE_HEIGHT = 120.0
+#IMAGE_WIDTH = 160.0
+#IMAGE_HEIGHT = 120.0
+IMAGE_WIDTH = 640.0
+IMAGE_HEIGHT = 480.0
+
+TURN_PERIOD = 0.05
+TURN_SPEED = 70
+
 
 class Motion:
     def __init__(self):
@@ -74,7 +82,7 @@ class Motion:
     def loop_move(self):
         self.running = True
         while self.running:
-            frame = self.cam.get_image()
+            frame = self.cam.get_image_copy()
             self.frame_gray = frame.grayscale()
 
             if len(self.tracks) < 2 or self.frame_idx % self.detect_interval == 0:
@@ -94,7 +102,7 @@ class Motion:
     def loop_turn(self):
         self.running = True
         while self.running:
-            frame = self.cam.get_image()
+            frame = self.cam.get_image_copy()
             self.frame_gray = frame.grayscale()
 
             if len(self.tracks) < 2 or self.frame_idx % self.detect_interval == 0:
@@ -189,6 +197,9 @@ class Motion:
             self.delta_dist += (avg_delta_y * PI_CAM_FOV_V_CM) / IMAGE_HEIGHT
             #print "count: ", count, "delta_a: ", self.delta_angle, " avg_delta_x: ", avg_delta_x, " delta_y: ", self.delta_dist, " avg_delta_y: ", avg_delta_y
 
+        print "angle : "
+        print self.delta_angle
+        
         #cv2.line(self.vis, (int(80+deltaAngle),20), (80,20), (0, 0, 255))
         #cv2.putText(self.vis, "delta: " + str(int((self.deltaAngle*53.0)/160.0)) + " avg_delta: " + str(int(((avg_delta_x*53.0)/160.0))), (0,20), cv2.FONT_HERSHEY_SIMPLEX, 0.3, (0, 0, 255))
         return self.delta_angle, self.delta_dist
@@ -200,7 +211,8 @@ class Motion:
         for p_a in self.power_angles:
            if abs(target_angle - delta_angle) > p_a[0] and self.running:
                #print "pow: ", p_a[1][0], " duration: ", p_a[1][1]
-               self.bot.motor_control(sign * p_a[1][0], -1 * sign * p_a[1][0], p_a[1][1])
+               #self.bot.motor_control(sign * p_a[1][0], -1 * sign * p_a[1][0], p_a[1][1])
+               self.bot.motor_control(sign * TURN_SPEED, -1 * sign * TURN_SPEED, TURN_PERIOD)
                run = p_a[1][0] > 0 #stopped
                break
         
