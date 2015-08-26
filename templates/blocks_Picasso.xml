@@ -74,6 +74,7 @@
       <block type="logic_null"></block>
       <block type="logic_ternary"></block>
     </category>
+    <category name="{% trans %}Advanced - Variables{% endtrans %}" custom="VARIABLE"></category>
     <category name="{% trans %}Advanced - Loops{% endtrans %}">
       <block type="controls_repeat_ext">
         <value name="TIMES">
